@@ -89,7 +89,18 @@ try {
     await navigate(sessionId,url,390,844);
     await screenshot(sessionId,`${name}-mobile.png`);
     assert(await evaluate('document.documentElement.scrollWidth <= window.innerWidth',sessionId),`${name} overflows mobile viewport.`);
+    for (const width of [320,768]) {
+      await navigate(sessionId,url,width,844);
+      assert(await evaluate('document.documentElement.scrollWidth <= window.innerWidth',sessionId),`${name} overflows ${width} px viewport.`);
+    }
   }
+
+  await navigate(sessionId,'/index.html',390,844);
+  await evaluate(`document.querySelector('.mobile-menu-button').click()`,sessionId);
+  assert(await evaluate(`document.querySelector('.mobile-menu-button').getAttribute('aria-expanded') === 'true' && document.getElementById('mobile-nav').classList.contains('open')`,sessionId),'Mobile navigation did not open.');
+  await evaluate(`document.querySelector('.tile-books').click()`,sessionId);
+  await loaded(sessionId,`${base}/pages/browse.html?category=textbooks`);
+  assert(await count(sessionId)===4,'Home category shortcut did not filter Browse.');
 
   await navigate(sessionId,'/index.html',1440,900);
   await evaluate(`(() => { document.querySelector('#home-search').value='calculator'; document.querySelector('.hero-search').requestSubmit(); })()`,sessionId);
@@ -99,6 +110,11 @@ try {
   await navigate(sessionId,'/pages/browse.html',1440,900);
   assert(await count(sessionId)===12,'Browse must show all 12 mock items.');
   assert(await evaluate(`document.querySelector('.desktop-nav a[href$="index.html"]') !== null && document.querySelector('.desktop-nav a[href$="browse.html"]') !== null`,sessionId),'Main navigation links are missing.');
+  await evaluate(`(() => { const el=document.querySelector('#sort-select'); el.value='price_asc'; el.dispatchEvent(new Event('change',{bubbles:true})); })()`,sessionId);
+  assert(await evaluate(`(() => { const prices=[...document.querySelectorAll('.product-price')].map(el=>Number(el.textContent.replace(/[^0-9]/g,''))); return prices.every((price,index)=>index===0 || prices[index-1]<=price); })()`,sessionId),'Low-to-high sorting is incorrect.');
+  await evaluate(`(() => { const el=document.querySelector('#sort-select'); el.value='price_desc'; el.dispatchEvent(new Event('change',{bubbles:true})); })()`,sessionId);
+  assert(await evaluate(`(() => { const prices=[...document.querySelectorAll('.product-price')].map(el=>Number(el.textContent.replace(/[^0-9]/g,''))); return prices.every((price,index)=>index===0 || prices[index-1]>=price); })()`,sessionId),'High-to-low sorting is incorrect.');
+  await evaluate(`(() => { const el=document.querySelector('#sort-select'); el.value='newest'; el.dispatchEvent(new Event('change',{bubbles:true})); })()`,sessionId);
   await evaluate(`document.querySelector('.favorite-button').click()`,sessionId);
   assert(await evaluate(`document.querySelector('.favorite-button').getAttribute('aria-pressed') === 'true'`,sessionId),'Favorite interaction failed.');
   await evaluate(`(() => { const el=document.querySelector('input[name="category"][value="textbooks"]'); el.checked=true; el.dispatchEvent(new Event('change',{bubbles:true})); })()`,sessionId);
@@ -108,10 +124,18 @@ try {
   await evaluate(`(() => { const el=document.querySelector('input[name="condition"][value="new"]'); el.checked=true; el.dispatchEvent(new Event('change',{bubbles:true})); })()`,sessionId);
   await waitCount(sessionId,1);
   assert((await evaluate(`document.querySelector('.product-title').textContent`,sessionId)).includes('English Grammar'),'Combined filters returned the wrong product.');
+  await evaluate(`(() => { const el=document.querySelector('input[name="max_price"]'); el.value='10000'; el.dispatchEvent(new Event('input',{bubbles:true})); })()`,sessionId);
+  await waitCount(sessionId,0);
+  assert(await evaluate(`document.getElementById('price-error').textContent.includes('Minimum price')`,sessionId),'Invalid price range lacks a visible error.');
+  await evaluate(`(() => { const el=document.querySelector('input[name="max_price"]'); el.value=''; el.dispatchEvent(new Event('input',{bubbles:true})); })()`,sessionId);
+  await waitCount(sessionId,1);
   await evaluate(`(() => { const el=document.querySelector('#sort-select'); el.value='price_desc'; el.dispatchEvent(new Event('change',{bubbles:true})); })()`,sessionId);
   assert((await evaluate('location.search',sessionId)).includes('sort=price_desc'),'Sort is not synchronized with the URL.');
   await evaluate(`document.querySelector('.clear-filter-button').click()`,sessionId);
   await waitCount(sessionId,12);
+  await evaluate(`(() => { document.querySelector('#browse-search').value='uniform'; document.querySelector('.toolbar-search').requestSubmit(); })()`,sessionId);
+  await loaded(sessionId,`${base}/pages/search.html?q=uniform`);
+  assert(await count(sessionId)===2,'Browse search did not open matching results.');
 
   await navigate(sessionId,'/pages/search.html?q=textbook',1440,900);
   assert(await count(sessionId)===3,'Search should find three textbooks.');
@@ -122,7 +146,7 @@ try {
   await waitCount(sessionId,12);
   assert(exceptions.length===0,`JavaScript exceptions: ${exceptions.join('; ')}`);
   assert(consoleErrors.length===0,`Console errors: ${consoleErrors.join('; ')}`);
-  console.log('PASS: desktop/mobile viewport, filter combinations, sorting URL, search and empty state; no JavaScript exceptions.');
+  console.log('PASS: 320/390/768/1440 px layouts, search navigation, category links, combined and invalid filters, sort order, empty state, favorite and mobile menu; no JavaScript console errors.');
   console.log(`Screenshots: ${screenshots}`);
 } finally {
   if (ws) ws.close();

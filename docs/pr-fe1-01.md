@@ -22,7 +22,7 @@ Closes #1
 - [x] Sorting updates the URL.
 - [x] Search finds matching items and displays an empty state for an unknown keyword.
 - [x] Home search opens Search Results; the empty-state action restores all listings.
-- [x] Desktop and 390 px mobile viewports have no horizontal overflow.
+- [x] Desktop and 320, 390 and 768 px viewports have no horizontal overflow.
 - [x] No JavaScript exceptions in browser verification.
 
 Run `python -m http.server 5500 --directory frontend`, then `node frontend/scripts/verify-fe1.mjs` with Chrome installed. Screenshots are in `docs/screenshots/fe1-01/`.
@@ -38,3 +38,7 @@ Run `python -m http.server 5500 --directory frontend`, then `node frontend/scrip
 ## Contract changes
 
 None. The API adapter uses the query names and response shape from `docs/api-contract.md`. FE2 can extend the adapter with auth and write methods.
+
+## Integration dependencies
+
+The Home, Browse and Search links work within this issue. Links to Login, My Listings and Create Listing target routes assigned to FE2; product cards target Item Detail, a separate FE1 screen. Those four destination pages do not exist in the starter repository yet, so the full cross-page navigation criterion remains pending until their owners add them.

@@ -110,8 +110,14 @@ function validPriceRange() {
 
 async function loadProducts() {
   updateHeading();
-  if (!validPriceRange()) return;
   const currentRequest = ++requestId;
+  if (!validPriceRange()) {
+    grid.replaceChildren();
+    count.textContent = '';
+    empty.hidden = true;
+    status.textContent = '';
+    return;
+  }
   status.textContent = isSearch ? 'Searching listings…' : 'Loading listings…';
   empty.hidden = true;
   try {
@@ -134,6 +140,7 @@ async function loadProducts() {
 }
 
 function clearAll() {
+  clearTimeout(priceTimer);
   state = {q:'',category:'',condition:'',min_price:'',max_price:'',sort:'newest'};
   buildFilters();
   writeUrl();
@@ -154,9 +161,9 @@ filtersElement.addEventListener('input',event => {
   if (event.target.matches('input[type="number"]')) {
     state[event.target.name] = event.target.value;
     clearTimeout(priceTimer);
-    priceTimer = setTimeout(() => { if (validPriceRange()) { writeUrl(); loadProducts(); } },220);
+    priceTimer = setTimeout(() => { if (validPriceRange()) writeUrl(); loadProducts(); },220);
   }
 });
 sortSelect.addEventListener('change',() => { state.sort = sortSelect.value; writeUrl(); loadProducts(); });
 document.getElementById('clear-empty').addEventListener('click',clearAll);
-window.addEventListener('popstate',() => { state = readState(); buildFilters(); loadProducts(); });
+window.addEventListener('popstate',() => { clearTimeout(priceTimer); state = readState(); buildFilters(); loadProducts(); });
