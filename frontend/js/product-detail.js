@@ -78,7 +78,7 @@ async function renderDetail(item,seller) {
   document.getElementById('product-condition').textContent = conditionNames[item.condition] || item.condition;
   const posted = document.getElementById('posted-date');
   posted.dateTime = item.created_at;
-  posted.textContent = `Posted ${new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(item.created_at))}`;
+  posted.textContent = `Posted ${new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'Asia/Ho_Chi_Minh'}).format(new Date(item.created_at))}`;
   const listingStatus = document.getElementById('product-status');
   listingStatus.className = `status-badge status-${item.status}`;
   listingStatus.textContent = statusNames[item.status] || item.status;

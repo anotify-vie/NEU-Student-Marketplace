@@ -1,3 +1,6 @@
+import { API_MODE, MOCK_SESSION_KEY } from './api.js';
+import { mockUsers } from './mock-users.js';
+
 const root = document.body.dataset.root || '.';
 const page = document.body.dataset.page || '';
 const path = target => `${root}/${target}`;
@@ -12,7 +15,13 @@ function icon(name) {
 }
 
 export function renderShell() {
-  document.getElementById('site-header').innerHTML = `<div class="header-inner"><a class="brand" href="${path('index.html')}" aria-label="NEU Student Marketplace home"><span class="brand-mark" aria-hidden="true">N</span><span>NEU Student Marketplace</span></a><nav class="desktop-nav" aria-label="Main navigation"><a href="${path('index.html')}" ${page==='home'?'aria-current="page"':''}>Home</a><a href="${path('pages/browse.html')}" ${page==='browse'||page==='search'?'aria-current="page"':''}>Categories</a><a href="${path('pages/my-listings.html')}">My Listings</a></nav><div class="header-actions"><a class="icon-link" href="${path('pages/search.html')}" aria-label="Search">${icon('search')}</a><a class="account-link" href="${path('pages/profile.html')}" aria-label="View demo profile"><span class="avatar" aria-hidden="true">${icon('user')}</span><span class="account-label">Profile</span></a></div><button class="mobile-menu-button" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false">☰</button></div><nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Categories</a><a href="${path('pages/search.html')}">Search</a><a href="${path('pages/profile.html')}">Profile</a><a href="${path('pages/my-listings.html')}">My Listings</a><a href="${path('pages/login.html')}">Log In</a></nav>`;
+  let signedInDemo = false;
+  if (API_MODE === 'mock') {
+    try { signedInDemo = mockUsers.some(user => user.id === Number(sessionStorage.getItem(MOCK_SESSION_KEY))); } catch { /* Session storage may be unavailable. */ }
+  }
+  const accountTarget = signedInDemo ? 'pages/profile.html' : 'pages/login.html';
+  const accountLabel = signedInDemo ? 'Profile' : 'Log In';
+  document.getElementById('site-header').innerHTML = `<div class="header-inner"><a class="brand" href="${path('index.html')}" aria-label="NEU Student Marketplace home"><span class="brand-mark" aria-hidden="true">N</span><span>NEU Student Marketplace</span></a><nav class="desktop-nav" aria-label="Main navigation"><a href="${path('index.html')}" ${page==='home'?'aria-current="page"':''}>Home</a><a href="${path('pages/browse.html')}" ${page==='browse'||page==='search'?'aria-current="page"':''}>Categories</a><a href="${path('pages/my-listings.html')}">My Listings</a></nav><div class="header-actions"><a class="icon-link" href="${path('pages/search.html')}" aria-label="Search">${icon('search')}</a><a class="account-link" href="${path(accountTarget)}" aria-label="${signedInDemo?'View profile':'Log in'}"><span class="avatar" aria-hidden="true">${icon('user')}</span><span class="account-label">${accountLabel}</span></a></div><button class="mobile-menu-button" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false">☰</button></div><nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Categories</a><a href="${path('pages/search.html')}">Search</a><a href="${path('pages/my-listings.html')}">My Listings</a><a href="${path(accountTarget)}">${accountLabel}</a></nav>`;
   document.getElementById('site-footer').innerHTML = `<div class="footer-inner"><span>© 2026 NEU Student Marketplace. Made for the student community.</span><nav class="footer-links" aria-label="Footer navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Browse</a><a href="${path('pages/search.html')}">Search</a></nav></div>`;
   const menuButton = document.querySelector('.mobile-menu-button');
   menuButton.addEventListener('click', () => {
@@ -91,7 +100,7 @@ export function createProductCard(item) {
   condition.textContent = {new:'Like New',good:'Good',fair:'Fair'}[item.condition] || item.condition;
   const date = document.createElement('span');
   date.className = 'product-date';
-  date.textContent = new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'}).format(new Date(item.created_at));
+  date.textContent = new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',timeZone:'Asia/Ho_Chi_Minh'}).format(new Date(item.created_at));
   meta.append(condition,date);
   info.append(title,price,meta);
   card.append(imageLink,favorite,info);

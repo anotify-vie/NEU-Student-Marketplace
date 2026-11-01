@@ -44,7 +44,7 @@ function renderProfile(profile,stats) {
   text('profile-faculty',profile.faculty);
   text('profile-cohort',profile.cohort);
   text('profile-campus',profile.campus);
-  text('profile-joined',profile.joined_at ? new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric'}).format(new Date(profile.joined_at)) : null);
+  text('profile-joined',profile.joined_at ? new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'Asia/Ho_Chi_Minh'}).format(new Date(profile.joined_at)) : null);
   ['total','available','reserved','sold'].forEach(key => { document.getElementById(`stat-${key}`).textContent = stats?.[key] ?? '—'; });
 }
 
@@ -105,14 +105,14 @@ async function init() {
       }
       if (profileId === null) profileId = currentUser.id;
     } else if (profileId === null) {
-      profileId = 1; // The no-ID route is the editable demo owner's profile.
+      currentUser = await getCurrentUser();
+      profileId = currentUser?.id || 1; // Guests preview the public demo profile.
     }
     user = await getUser(profileId);
     const stats = await getUserStats(user.id);
     renderProfile(user,stats);
-    const isOwner = API_MODE === 'mock'
-      ? user.id === 1 && (explicitId === null || (await getCurrentUser())?.id === 1)
-      : currentUser?.id === user.id;
+    if (API_MODE === 'mock' && !currentUser) currentUser = await getCurrentUser();
+    const isOwner = currentUser?.id === user.id;
     editButton.hidden = !isOwner;
     statusElement.textContent = '';
     content.hidden = false;

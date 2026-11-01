@@ -75,6 +75,7 @@ try {
   await mkdir(screenshots,{recursive:true});
 
   for (const [name,url] of [['product-detail','/pages/product-detail.html?id=101'],['profile','/pages/profile.html']]) {
+    if (name === 'profile') await evaluate(`sessionStorage.setItem('neu-marketplace-demo-user-id','1')`,sessionId);
     for (const [label,width,height] of [['desktop',1440,1000],['mobile',390,844]]) {
       await navigate(sessionId,url,width,height);
       assert(await evaluate('document.documentElement.scrollWidth <= window.innerWidth',sessionId),`${name} overflows ${width} px viewport.`);
@@ -85,6 +86,12 @@ try {
       assert(await evaluate('document.documentElement.scrollWidth <= window.innerWidth',sessionId),`${name} overflows ${width} px viewport.`);
     }
   }
+  await evaluate(`sessionStorage.removeItem('neu-marketplace-demo-user-id')`,sessionId);
+
+  await navigate(sessionId,'/pages/profile.html');
+  assert(await evaluate(`document.getElementById('edit-profile-button').hidden`,sessionId),'Guests must not edit the demo owner profile.');
+  assert(await evaluate(`document.querySelector('.account-link').getAttribute('href').endsWith('/pages/login.html') && document.querySelector('.account-label').textContent === 'Log In'`,sessionId),'Guest account entry must lead to Login.');
+  assert(await evaluate(`(async () => { try { await (await import('/js/api.js')).updateProfile(1,{display_name:'Guest Change',faculty:'Faculty of Economics',cohort:'K64',bio:''}); return false; } catch(error) { return error.message.includes('Please log in'); } })()`,sessionId),'Guest profile update was not rejected.');
 
   await navigate(sessionId,'/pages/browse.html');
   await evaluate(`document.querySelector('.product-card .product-title a').click()`,sessionId);
@@ -108,7 +115,9 @@ try {
   await navigate(sessionId,'/pages/product-detail.html?id=999');
   assert(await evaluate(`!document.getElementById('detail-error').hidden && document.getElementById('detail-content').hidden`,sessionId),'Missing product error state is absent.');
 
+  await evaluate(`sessionStorage.setItem('neu-marketplace-demo-user-id','1')`,sessionId);
   await navigate(sessionId,'/pages/profile.html');
+  assert(await evaluate(`document.querySelector('.account-link').getAttribute('href').endsWith('/pages/profile.html') && document.querySelector('.account-label').textContent === 'Profile'`,sessionId),'Signed-in account entry must lead to Profile.');
   assert(await evaluate(`!document.getElementById('edit-profile-button').hidden && document.getElementById('stat-total').textContent === '3' && document.getElementById('stat-sold').textContent === '2'`,sessionId),'Owner profile or statistics are incorrect.');
   await evaluate(`document.getElementById('edit-profile-button').click()`,sessionId);
   await evaluate(`(() => { document.getElementById('edit-name').value='A'; document.getElementById('profile-form').requestSubmit(); })()`,sessionId);
@@ -122,6 +131,12 @@ try {
   await evaluate(`sessionStorage.setItem('neu-marketplace-demo-user-id','1')`,sessionId);
   await navigate(sessionId,'/pages/profile.html?id=1');
   assert(await evaluate(`!document.getElementById('edit-profile-button').hidden`,sessionId),'Signed-in owner must be able to edit their explicit profile URL.');
+  await navigate(sessionId,'/pages/profile.html?id=2');
+  assert(await evaluate(`document.getElementById('edit-profile-button').hidden`,sessionId),'A signed-in user must not edit another profile.');
+  assert(await evaluate(`(async () => { try { await (await import('/js/api.js')).updateProfile(2,{display_name:'Wrong Owner',faculty:'Faculty of Economics',cohort:'K64',bio:''}); return false; } catch(error) { return error.message.includes('profile owner'); } })()`,sessionId),'Mock API allowed another user to edit this profile.');
+  await evaluate(`sessionStorage.setItem('neu-marketplace-demo-user-id','2')`,sessionId);
+  await navigate(sessionId,'/pages/profile.html');
+  assert(await evaluate(`document.getElementById('profile-name').textContent === 'Ha Linh Tran' && !document.getElementById('edit-profile-button').hidden`,sessionId),'Account Profile must show the signed-in user.');
   await evaluate(`sessionStorage.removeItem('neu-marketplace-demo-user-id')`,sessionId);
 
   assert(exceptions.length===0,`JavaScript exceptions: ${exceptions.join('; ')}`);

@@ -89,7 +89,8 @@ export async function getUserStats(id) {
 export async function updateProfile(id,values) {
   if (API_MODE !== 'mock') throw new Error('Profile editing is waiting for an approved API endpoint.');
   const userId = Number(id);
-  if (userId !== 1) throw new Error('Only the demo profile owner can edit this profile.');
+  const currentUser = await getCurrentUser();
+  if (!currentUser || currentUser.id !== userId) throw new Error('Please log in as the profile owner to edit this profile.');
   const user = await getUser(userId);
   const updated = {...user,display_name:values.display_name,faculty:values.faculty,cohort:values.cohort,bio:values.bio};
   localStorage.setItem(`neu-marketplace-demo-profile-${userId}`,JSON.stringify({display_name:updated.display_name,faculty:updated.faculty,cohort:updated.cohort,bio:updated.bio}));
