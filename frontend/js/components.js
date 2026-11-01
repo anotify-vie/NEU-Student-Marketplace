@@ -12,7 +12,7 @@ function icon(name) {
 }
 
 export function renderShell() {
-  document.getElementById('site-header').innerHTML = `<div class="header-inner"><a class="brand" href="${path('index.html')}" aria-label="NEU Student Marketplace home"><span class="brand-mark" aria-hidden="true">N</span><span>NEU Student Marketplace</span></a><nav class="desktop-nav" aria-label="Main navigation"><a href="${path('index.html')}" ${page==='home'?'aria-current="page"':''}>Home</a><a href="${path('pages/browse.html')}" ${page==='browse'||page==='search'?'aria-current="page"':''}>Categories</a><a href="${path('pages/my-listings.html')}">My Listings</a></nav><div class="header-actions"><a class="icon-link" href="${path('pages/search.html')}" aria-label="Search">${icon('search')}</a><a class="account-link" href="${path('pages/login.html')}" aria-label="Log in"><span class="avatar" aria-hidden="true">${icon('user')}</span><span class="account-label">Log In</span></a></div><button class="mobile-menu-button" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false">☰</button></div><nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Categories</a><a href="${path('pages/search.html')}">Search</a><a href="${path('pages/my-listings.html')}">My Listings</a><a href="${path('pages/login.html')}">Log In</a></nav>`;
+  document.getElementById('site-header').innerHTML = `<div class="header-inner"><a class="brand" href="${path('index.html')}" aria-label="NEU Student Marketplace home"><span class="brand-mark" aria-hidden="true">N</span><span>NEU Student Marketplace</span></a><nav class="desktop-nav" aria-label="Main navigation"><a href="${path('index.html')}" ${page==='home'?'aria-current="page"':''}>Home</a><a href="${path('pages/browse.html')}" ${page==='browse'||page==='search'?'aria-current="page"':''}>Categories</a><a href="${path('pages/my-listings.html')}">My Listings</a></nav><div class="header-actions"><a class="icon-link" href="${path('pages/search.html')}" aria-label="Search">${icon('search')}</a><a class="account-link" href="${path('pages/profile.html')}" aria-label="View demo profile"><span class="avatar" aria-hidden="true">${icon('user')}</span><span class="account-label">Profile</span></a></div><button class="mobile-menu-button" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false">☰</button></div><nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Categories</a><a href="${path('pages/search.html')}">Search</a><a href="${path('pages/profile.html')}">Profile</a><a href="${path('pages/my-listings.html')}">My Listings</a><a href="${path('pages/login.html')}">Log In</a></nav>`;
   document.getElementById('site-footer').innerHTML = `<div class="footer-inner"><span>© 2026 NEU Student Marketplace. Made for the student community.</span><nav class="footer-links" aria-label="Footer navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Browse</a><a href="${path('pages/search.html')}">Search</a></nav></div>`;
   const menuButton = document.querySelector('.mobile-menu-button');
   menuButton.addEventListener('click', () => {
@@ -24,25 +24,34 @@ export function renderShell() {
 }
 
 const favoritesKey = 'neu-marketplace-demo-favorites';
+const memoryFavorites = new Set();
 function favoriteIds() {
   try { return new Set(JSON.parse(localStorage.getItem(favoritesKey) || '[]')); }
-  catch { return new Set(); }
+  catch { return new Set(memoryFavorites); }
+}
+export function isFavorite(id) { return favoriteIds().has(id); }
+export function toggleFavorite(id) {
+  const ids = favoriteIds();
+  if (ids.has(id)) ids.delete(id); else ids.add(id);
+  memoryFavorites.clear(); ids.forEach(value => memoryFavorites.add(value));
+  try { localStorage.setItem(favoritesKey,JSON.stringify([...ids])); } catch { /* Use memory when storage is unavailable. */ }
+  return ids.has(id);
 }
 export function formatPrice(value) { return `${new Intl.NumberFormat('en-US').format(value)} VND`; }
-export function productImageUrl(item) {
-  const raw = item.image_urls?.[0];
+export function resolveAssetUrl(raw) {
   if (!raw) return new URL('../assets/placeholder.svg', import.meta.url).href;
   if (/^(https?:|data:|blob:)/.test(raw)) return raw;
   if (raw.startsWith('/uploads/')) return `http://127.0.0.1:8000${raw}`;
   return new URL(`../${raw.replace(/^\//,'')}`, import.meta.url).href;
 }
+export function productImageUrl(item) { return resolveAssetUrl(item.image_urls?.[0]); }
 
 export function createProductCard(item) {
   const card = document.createElement('article');
   card.className = 'product-card';
   const imageLink = document.createElement('a');
   imageLink.className = 'product-image-link';
-  imageLink.href = `${path('pages/item-detail.html')}?id=${encodeURIComponent(item.id)}`;
+  imageLink.href = `${path('pages/product-detail.html')}?id=${encodeURIComponent(item.id)}`;
   imageLink.setAttribute('aria-label',`View ${item.title}`);
   const image = document.createElement('img');
   image.src = productImageUrl(item);
@@ -54,16 +63,14 @@ export function createProductCard(item) {
   favorite.className = 'favorite-button';
   favorite.innerHTML = icon('heart');
   function updateFavorite() {
-    const active = favoriteIds().has(item.id);
+    const active = isFavorite(item.id);
     favorite.setAttribute('aria-pressed',String(active));
     favorite.setAttribute('aria-label',`${active?'Remove':'Add'} ${item.title} ${active?'from':'to'} demo favorites`);
     favorite.querySelector('svg').setAttribute('fill',active?'currentColor':'none');
   }
   updateFavorite();
   favorite.addEventListener('click', () => {
-    const ids = favoriteIds();
-    if (ids.has(item.id)) ids.delete(item.id); else ids.add(item.id);
-    try { localStorage.setItem(favoritesKey,JSON.stringify([...ids])); } catch { /* Storage may be unavailable. */ }
+    toggleFavorite(item.id);
     updateFavorite();
   });
   const info = document.createElement('div');
