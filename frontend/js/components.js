@@ -1,0 +1,96 @@
+const root = document.body.dataset.root || '.';
+const page = document.body.dataset.page || '';
+const path = target => `${root}/${target}`;
+
+function icon(name) {
+  const paths = {
+    search:'<circle cx="10.7" cy="10.7" r="6.2"/><path d="m15.4 15.4 4.1 4.1"/>',
+    heart:'<path d="M20.8 8.5c0 4.1-8.8 10.4-8.8 10.4S3.2 12.6 3.2 8.5a4.4 4.4 0 0 1 8.8-.8 4.4 4.4 0 0 1 8.8.8Z"/>',
+    user:'<circle cx="12" cy="8" r="3.2"/><path d="M5.5 19.5c.4-3.6 2.6-5.5 6.5-5.5s6.1 1.9 6.5 5.5"/>'
+  };
+  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`;
+}
+
+export function renderShell() {
+  document.getElementById('site-header').innerHTML = `<div class="header-inner"><a class="brand" href="${path('index.html')}" aria-label="NEU Student Marketplace home"><span class="brand-mark" aria-hidden="true">N</span><span>NEU Student Marketplace</span></a><nav class="desktop-nav" aria-label="Main navigation"><a href="${path('index.html')}" ${page==='home'?'aria-current="page"':''}>Home</a><a href="${path('pages/browse.html')}" ${page==='browse'||page==='search'?'aria-current="page"':''}>Categories</a><a href="${path('pages/my-listings.html')}">My Listings</a></nav><div class="header-actions"><a class="icon-link" href="${path('pages/search.html')}" aria-label="Search">${icon('search')}</a><a class="account-link" href="${path('pages/login.html')}" aria-label="Log in"><span class="avatar" aria-hidden="true">${icon('user')}</span><span class="account-label">Log In</span></a></div><button class="mobile-menu-button" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false">☰</button></div><nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Categories</a><a href="${path('pages/search.html')}">Search</a><a href="${path('pages/my-listings.html')}">My Listings</a><a href="${path('pages/login.html')}">Log In</a></nav>`;
+  document.getElementById('site-footer').innerHTML = `<div class="footer-inner"><span>© 2026 NEU Student Marketplace. Made for the student community.</span><nav class="footer-links" aria-label="Footer navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Browse</a><a href="${path('pages/search.html')}">Search</a></nav></div>`;
+  const menuButton = document.querySelector('.mobile-menu-button');
+  menuButton.addEventListener('click', () => {
+    const open = menuButton.getAttribute('aria-expanded') !== 'true';
+    menuButton.setAttribute('aria-expanded',String(open));
+    menuButton.setAttribute('aria-label',open?'Close menu':'Open menu');
+    document.getElementById('mobile-nav').classList.toggle('open',open);
+  });
+}
+
+const favoritesKey = 'neu-marketplace-demo-favorites';
+function favoriteIds() {
+  try { return new Set(JSON.parse(localStorage.getItem(favoritesKey) || '[]')); }
+  catch { return new Set(); }
+}
+export function formatPrice(value) { return `${new Intl.NumberFormat('en-US').format(value)} VND`; }
+export function productImageUrl(item) {
+  const raw = item.image_urls?.[0];
+  if (!raw) return new URL('../assets/placeholder.svg', import.meta.url).href;
+  if (/^(https?:|data:|blob:)/.test(raw)) return raw;
+  if (raw.startsWith('/uploads/')) return `http://127.0.0.1:8000${raw}`;
+  return new URL(`../${raw.replace(/^\//,'')}`, import.meta.url).href;
+}
+
+export function createProductCard(item) {
+  const card = document.createElement('article');
+  card.className = 'product-card';
+  const imageLink = document.createElement('a');
+  imageLink.className = 'product-image-link';
+  imageLink.href = `${path('pages/item-detail.html')}?id=${encodeURIComponent(item.id)}`;
+  imageLink.setAttribute('aria-label',`View ${item.title}`);
+  const image = document.createElement('img');
+  image.src = productImageUrl(item);
+  image.alt = item.title;
+  image.loading = 'eager';
+  imageLink.append(image);
+  const favorite = document.createElement('button');
+  favorite.type = 'button';
+  favorite.className = 'favorite-button';
+  favorite.innerHTML = icon('heart');
+  function updateFavorite() {
+    const active = favoriteIds().has(item.id);
+    favorite.setAttribute('aria-pressed',String(active));
+    favorite.setAttribute('aria-label',`${active?'Remove':'Add'} ${item.title} ${active?'from':'to'} demo favorites`);
+    favorite.querySelector('svg').setAttribute('fill',active?'currentColor':'none');
+  }
+  updateFavorite();
+  favorite.addEventListener('click', () => {
+    const ids = favoriteIds();
+    if (ids.has(item.id)) ids.delete(item.id); else ids.add(item.id);
+    try { localStorage.setItem(favoritesKey,JSON.stringify([...ids])); } catch { /* Storage may be unavailable. */ }
+    updateFavorite();
+  });
+  const info = document.createElement('div');
+  info.className = 'product-info';
+  const title = document.createElement('h3');
+  title.className = 'product-title';
+  const titleLink = document.createElement('a');
+  titleLink.href = imageLink.href;
+  titleLink.textContent = item.title;
+  title.append(titleLink);
+  const price = document.createElement('p');
+  price.className = 'product-price';
+  price.textContent = formatPrice(item.price);
+  const meta = document.createElement('div');
+  meta.className = 'product-meta';
+  const condition = document.createElement('span');
+  condition.className = 'condition-badge';
+  condition.textContent = {new:'Like New',good:'Good',fair:'Fair'}[item.condition] || item.condition;
+  const date = document.createElement('span');
+  date.className = 'product-date';
+  date.textContent = new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'}).format(new Date(item.created_at));
+  meta.append(condition,date);
+  info.append(title,price,meta);
+  card.append(imageLink,favorite,info);
+  return card;
+}
+
+export function renderCards(container, items) {
+  container.replaceChildren(...items.map(createProductCard));
+}
