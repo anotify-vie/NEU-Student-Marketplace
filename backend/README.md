@@ -35,7 +35,7 @@ uvicorn main:app --reload
 
 The SQLite database (`marketplace.db`) is created automatically on first start.
 
-## Seed demo accounts
+## Seed demo accounts and listings
 
 ```bash
 python seed.py
@@ -46,11 +46,11 @@ python seed.py
 | `buyer@example.com` | `DemoPass123!` |
 | `seller@example.com` | `DemoPass123!` |
 
-These are local demonstration accounts only. Never reuse this password anywhere real.
+This also creates ten demo listings (eight available for the seller, one sold and one reserved for the buyer) and copies the sample images into `backend/uploads/`. These are local demonstration accounts only. Never reuse this password anywhere real.
 
 ## Reset the database
 
-Stop the server, delete `backend/marketplace.db`, then start the server again (and re-run `python seed.py` if you want the demo accounts back).
+Stop the server, delete `backend/marketplace.db`, then start the server again (and re-run `python seed.py` if you want the demo data back).
 
 ## Tests
 
@@ -63,12 +63,14 @@ pytest
 | Variable | Default |
 |---|---|
 | `MARKETPLACE_DB_PATH` | `backend/marketplace.db` |
+| `MARKETPLACE_UPLOADS_DIR` | `backend/uploads` |
+| `MAX_UPLOAD_BYTES` | `5242880` (5 MB) |
 | `CORS_ORIGINS` | `http://127.0.0.1:5500,http://localhost:5500` |
 | `SESSION_COOKIE_NAME` | `session_token` |
 | `SESSION_MAX_AGE_SECONDS` | `604800` (7 days) |
 | `COOKIE_SECURE` | `false` |
 
-Never commit `.env` or real secrets.
+Never commit `.env` or real secrets. Uploaded images and the SQLite database are git-ignored.
 
 ## Implemented endpoints (API v1)
 
@@ -80,5 +82,12 @@ Never commit `.env` or real secrets.
 | GET | `/api/auth/me` | session cookie |
 | PATCH | `/api/users/me` | session cookie |
 | GET | `/api/users/{user_id}` | public (email never exposed) |
+| POST | `/api/items` | session cookie (owner = current user) |
+| GET | `/api/items` | public (`q`, `category`, `min_price`, `max_price`, `condition`, `status`, `sort`, `page`, `page_size`) |
+| GET | `/api/items/{item_id}` | public |
+| PATCH | `/api/items/{item_id}` | session cookie (owner only) |
+| DELETE | `/api/items/{item_id}` | session cookie (owner only) |
+| GET | `/api/me/items` | session cookie |
+| POST | `/api/uploads` | session cookie (JPEG/PNG/WebP, max 5 MB, max 5 images per listing) |
 
-Authentication uses an HTTP-only `session_token` cookie; passwords are hashed with bcrypt.
+Authentication uses an HTTP-only `session_token` cookie; passwords are hashed with bcrypt. Uploaded images are served from `/uploads/*`.
