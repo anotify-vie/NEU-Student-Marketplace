@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="View item details and seller information on NEU Student Marketplace.">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <title>Product Detail | NEU Student Marketplace</title>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/detail-profile.css">
+</head>
+<body data-page="detail" data-root="..">
+  <header class="site-header" id="site-header"></header>
+  <main class="site-main detail-main">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a><span aria-hidden="true">›</span><a href="browse.html">Browse</a><span aria-hidden="true">›</span><span id="breadcrumb-item" aria-current="page">Product Detail</span></nav>
+    <div id="detail-status" class="content-status" role="status">Loading product…</div>
+    <section id="detail-error" class="page-error" hidden><div class="page-error-icon" aria-hidden="true">⌕</div><h1>Listing unavailable</h1><p id="detail-error-message">This listing could not be found.</p><div class="page-error-actions"><button id="detail-retry" class="button button-outline" type="button">Retry</button><a class="button button-primary" href="browse.html">Browse Products</a></div></section>
+    <div id="detail-content" hidden>
+      <div class="detail-layout">
+        <section class="product-gallery" aria-label="Product images"><div class="main-image-frame"><img id="main-product-image" alt=""></div><div id="thumbnail-list" class="thumbnail-list" aria-label="Choose a product image"></div></section>
+        <section class="detail-summary" aria-labelledby="product-title">
+          <div class="detail-summary-top"><span id="product-status" class="status-badge"></span><time id="posted-date" class="posted-date"></time></div>
+          <h1 id="product-title"></h1>
+          <p id="product-price" class="detail-price"></p>
+          <div class="detail-tags"><span id="product-condition" class="condition-badge"></span><a id="product-category" class="category-chip" href="browse.html"></a></div>
+          <div class="detail-actions"><button id="chat-button" class="button button-primary" type="button">Chat with Seller</button><button id="favorite-button" class="button button-outline" type="button" aria-pressed="false">♡ Add to Favorites</button></div>
+          <p id="action-message" class="action-message" role="status"></p>
+          <section class="seller-card" aria-labelledby="seller-title"><h2 id="seller-title">Meet the seller</h2><div class="seller-row"><div id="seller-avatar" class="profile-avatar profile-avatar-small" aria-hidden="true"></div><div class="seller-identity"><strong id="seller-name"></strong><span>NEU student</span></div><a id="seller-link" class="text-link" href="profile.html">View Profile →</a></div></section>
+        </section>
+      </div>
+      <div class="detail-bottom"><section class="detail-panel" aria-labelledby="description-title"><h2 id="description-title">Description</h2><p id="product-description"></p></section><section class="detail-panel" aria-labelledby="location-title"><h2 id="location-title">Meeting Location</h2><div class="location-box"><span class="location-pin" aria-hidden="true">●</span><span id="product-location"></span></div><p class="location-note">Arrange a safe meeting place with the seller.</p></section></div>
+    </div>
+  </main>
+  <footer class="site-footer" id="site-footer"></footer>
+  <script type="module" src="../js/product-detail.js"></script>
+</body>
+</html>
