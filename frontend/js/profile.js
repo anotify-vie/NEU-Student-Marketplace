@@ -89,6 +89,9 @@ function validate(values) {
 }
 
 async function init() {
+  errorPanel.hidden = true;
+  content.hidden = true;
+  statusElement.textContent = 'Loading profile…';
   try {
     let profileId = explicitId;
     let currentUser = null;
@@ -122,6 +125,7 @@ async function init() {
 }
 
 editButton.addEventListener('click',openEditor);
+document.getElementById('profile-retry').addEventListener('click',init);
 document.getElementById('cancel-edit').addEventListener('click',closeEditor);
 document.getElementById('cancel-edit-top').addEventListener('click',closeEditor);
 form.addEventListener('submit',async event => {

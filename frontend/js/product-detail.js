@@ -125,10 +125,17 @@ async function renderDetail(item,seller) {
   content.hidden = false;
 }
 
-try {
-  const item = await getItem(id);
-  const seller = await getUser(item.seller_id);
-  await renderDetail(item,seller);
-} catch(error) {
-  showError(error.message || 'Unable to load this listing. Please try again.');
+async function loadDetail() {
+  errorPanel.hidden = true;
+  content.hidden = true;
+  statusElement.textContent = 'Loading product…';
+  try {
+    const item = await getItem(id);
+    const seller = await getUser(item.seller_id);
+    await renderDetail(item,seller);
+  } catch(error) {
+    showError(error.message || 'Unable to load this listing. Please try again.');
+  }
 }
+document.getElementById('detail-retry').addEventListener('click',loadDetail);
+loadDetail();

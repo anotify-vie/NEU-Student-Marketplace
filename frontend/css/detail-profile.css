@@ -46,6 +46,7 @@
 .page-error[hidden],#detail-content[hidden],#profile-content[hidden],#edit-panel[hidden]{display:none}
 .page-error-icon{width:60px;height:60px;display:grid;place-items:center;margin:0 auto 15px;border-radius:50%;background:#e9f2ff;color:var(--primary);font-size:39px}
 .page-error h1{margin-bottom:8px;font-size:25px}.page-error p{color:var(--muted)}
+.page-error-actions{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px}
 .profile-cover{height:245px;border-radius:13px 13px 0 0;background:#d9eafa url('../assets/campus-hero.png') center 53%/cover no-repeat}
 .profile-header-body{display:flex;align-items:end;gap:18px;min-height:110px;padding:0 25px 22px}
 .profile-avatar-large{width:115px;height:115px;margin-top:-39px;border:4px solid #fff;box-shadow:0 5px 15px rgba(20,59,109,.14);font-size:34px}

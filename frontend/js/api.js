@@ -6,6 +6,22 @@ import { mockUsers } from './mock-users.js';
 export const API_MODE = 'mock';
 export const API_BASE_URL = 'http://127.0.0.1:8000/api';
 export const MOCK_SESSION_KEY = 'neu-marketplace-demo-user-id';
+export const MOCK_CONVERSATIONS_KEY = 'neu-marketplace-demo-conversations-v1';
+let memoryConversations = [];
+
+function mockConversations() {
+  try {
+    const raw = localStorage.getItem(MOCK_CONVERSATIONS_KEY);
+    if (raw === null) return [...memoryConversations];
+    const saved = JSON.parse(raw);
+    return Array.isArray(saved) ? saved.filter(entry => Number.isSafeInteger(entry.id) && Number.isSafeInteger(entry.item_id) && Number.isSafeInteger(entry.buyer_id) && Number.isSafeInteger(entry.seller_id)) : [];
+  } catch { return [...memoryConversations]; }
+}
+
+function saveMockConversations(conversations) {
+  memoryConversations = conversations.map(entry => ({...entry}));
+  try { localStorage.setItem(MOCK_CONVERSATIONS_KEY,JSON.stringify(conversations)); } catch { /* Keep mock conversations in memory. */ }
+}
 
 function numberOrNull(value) {
   if (value === '' || value === null || value === undefined) return null;
@@ -115,9 +131,24 @@ export async function openConversation(itemId) {
     const item = await getItem(itemId);
     if (item.status === 'sold') throw new Error('This item has already been sold.');
     if (item.seller_id === user.id) throw new Error('You cannot chat about your own listing.');
-    return {id:1000 + item.id,item_id:item.id,buyer_id:user.id,seller_id:item.seller_id};
+    const conversations = mockConversations();
+    const existing = conversations.find(entry => entry.buyer_id === user.id && entry.item_id === item.id);
+    if (existing) return {...existing};
+    const nextId = conversations.reduce((highest,entry) => Math.max(highest,entry.id),1000) + 1;
+    const conversation = {id:nextId,item_id:item.id,buyer_id:user.id,seller_id:item.seller_id,updated_at:new Date().toISOString()};
+    saveMockConversations([...conversations,conversation]);
+    return {...conversation};
   }
   const response = await fetch(`${API_BASE_URL}/conversations`, {method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({item_id:Number(itemId)})});
   if (!response.ok) throw new Error('Unable to open the conversation. Please try again.');
+  return response.json();
+}
+
+export async function getConversations() {
+  const user = await getCurrentUser();
+  if (!user) throw new Error('Please log in to view conversations.');
+  if (API_MODE === 'mock') return mockConversations().filter(entry => entry.buyer_id === user.id || entry.seller_id === user.id);
+  const response = await fetch(`${API_BASE_URL}/conversations`, {credentials:'include'});
+  if (!response.ok) throw new Error('Unable to load conversations. Please try again.');
   return response.json();
 }

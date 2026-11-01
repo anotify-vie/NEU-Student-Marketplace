@@ -14,10 +14,9 @@ function icon(name) {
 }
 
 export function renderShell() {
-  const signedInDemo = false; // Initial markup is replaced after the adapter resolves.
   const accountTarget = 'pages/login.html';
   const accountLabel = 'Account';
-  document.getElementById('site-header').innerHTML = `<div class="header-inner"><a class="brand" href="${path('index.html')}" aria-label="NEU Student Marketplace home"><span class="brand-mark" aria-hidden="true">N</span><span>NEU Student Marketplace</span></a><nav class="desktop-nav" aria-label="Main navigation"><a href="${path('index.html')}" ${page==='home'?'aria-current="page"':''}>Home</a><a href="${path('pages/browse.html')}" ${page==='browse'||page==='search'?'aria-current="page"':''}>Categories</a><a href="${path('pages/my-listings.html')}">My Listings</a></nav><div class="header-actions"><a class="icon-link" href="${path('pages/search.html')}" aria-label="Search">${icon('search')}</a><a class="account-link" href="${path(accountTarget)}" aria-label="${signedInDemo?'View profile':'Log in'}"><span class="avatar" aria-hidden="true">${icon('user')}</span><span class="account-label">${accountLabel}</span></a></div><button class="mobile-menu-button" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false">☰</button></div><nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Categories</a><a href="${path('pages/search.html')}">Search</a><a href="${path('pages/my-listings.html')}">My Listings</a><a href="${path(accountTarget)}">${accountLabel}</a></nav>`;
+  document.getElementById('site-header').innerHTML = `<div class="header-inner"><a class="brand" href="${path('index.html')}" aria-label="NEU Student Marketplace home"><span class="brand-mark" aria-hidden="true">N</span><span>NEU Student Marketplace</span></a><nav class="desktop-nav" aria-label="Main navigation"><a href="${path('index.html')}" ${page==='home'?'aria-current="page"':''}>Home</a><a href="${path('pages/browse.html')}" ${page==='browse'||page==='search'?'aria-current="page"':''}>Categories</a><a href="${path('pages/my-listings.html')}">My Listings</a></nav><div class="header-actions"><a class="icon-link" href="${path('pages/search.html')}" aria-label="Search">${icon('search')}</a><a class="account-link" href="${path(accountTarget)}" aria-label="Checking account"><span class="avatar" aria-hidden="true">${icon('user')}</span><span class="account-label">${accountLabel}</span></a></div><button class="mobile-menu-button" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false">☰</button></div><nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Categories</a><a href="${path('pages/search.html')}">Search</a><a href="${path('pages/my-listings.html')}">My Listings</a><a href="${path(accountTarget)}">${accountLabel}</a></nav>`;
   document.getElementById('site-footer').innerHTML = `<div class="footer-inner"><span>© 2026 NEU Student Marketplace. Made for the student community.</span><nav class="footer-links" aria-label="Footer navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Browse</a><a href="${path('pages/search.html')}">Search</a></nav></div>`;
   const menuButton = document.querySelector('.mobile-menu-button');
   menuButton.addEventListener('click', () => {
@@ -28,7 +27,6 @@ export function renderShell() {
   });
   const accountLink = document.querySelector('.account-link');
   const mobileAccountLink = document.querySelector('.mobile-nav a:last-child');
-  accountLink.setAttribute('aria-label','Checking account');
   return getCurrentUser().then(user => {
     const target = path(user ? 'pages/profile.html' : 'pages/login.html');
     const label = user ? 'Profile' : 'Log In';
