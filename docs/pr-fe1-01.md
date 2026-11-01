@@ -1,68 +1,59 @@
-## Task / Issue
+## Closes
 
-Refs #1 — FE1-01: Home, Browse and Search Results.
+Refs #1.
 
-This PR implements the three discovery pages with mock data. It does not close #1 yet because several linked destination pages are still pending, as listed below.
+Keep #1 open after this PR. Its final acceptance still requires working destinations for Login, My Listings, Create Listing, and Item Detail, followed by cross-page navigation and reviewer verification. Those destination pages are outside the three pages implemented here.
 
-## Summary
+## What changed
 
-- Build the Home page with shared navigation, a hero search form, five category shortcuts, recently listed products and a View All link.
-- Build the Browse page with a responsive product grid, search field, category, price and condition filters, and Newest / Price: Low to High / Price: High to Low sorting.
-- Build the Search Results page with a visible query, the same filters and sorting, result counts and an empty-results state.
-- Render product cards from twelve mock Item records. Cards show a local product image, title, VND price, condition and an interactive demo favorite button.
-- Add a shared `getItems()` adapter in mock mode, with a Fetch API path for later backend integration. Filter and sort values follow `docs/api-contract.md` and are synchronized with the URL.
-- Add original local SVG product illustrations and a generated campus hero image, so the pages do not depend on external image services.
+Built the Home, Browse, and Search Results pages from the approved English mockup. Home includes shared navigation, hero search, five category shortcuts, recently listed products, and View All. Browse and Search Results use the same responsive product cards and category, VND price, condition, and sorting controls. Search Results displays the query and a clear empty state.
 
-## Files changed
+Added twelve mock Item records following `docs/api-contract.md`, shared DOM rendering, URL-synchronized filters, demo favorites stored in browser local storage, and an `api.js` adapter that uses mock data now and has a Fetch API path for later backend integration. Added local product illustrations and a campus hero image. No backend or external image service is needed for this demo.
 
-| Area | Files |
-| --- | --- |
-| Pages | `frontend/index.html`, `frontend/pages/browse.html`, `frontend/pages/search.html` |
-| Styles | `frontend/css/base.css`, `frontend/css/components.css` |
-| Shared data and UI | `frontend/js/mock-data.js`, `frontend/js/api.js`, `frontend/js/components.js` |
-| Page behavior | `frontend/js/home.js`, `frontend/js/catalog.js` |
-| Assets | `frontend/assets/` |
-| Verification | `frontend/scripts/verify-fe1.mjs`, `docs/screenshots/fe1-01/` |
+## How to test it
 
-## Verification
+From the repository root, with Python, Node 24, and Chrome installed:
 
-Run the frontend from the repository root:
+1. Run `python -m http.server 5500 --bind 127.0.0.1 --directory frontend`.
+2. In a second terminal, run `node frontend/scripts/verify-fe1.mjs`.
+3. Open `http://127.0.0.1:5500/index.html`, `http://127.0.0.1:5500/pages/browse.html`, and `http://127.0.0.1:5500/pages/search.html?q=textbook` for manual review.
 
-```bash
-python -m http.server 5500 --bind 127.0.0.1 --directory frontend
-```
+The browser script checks Home and Browse search, category shortcuts, combined and invalid filters, sort order and URL state, empty results, favorites, the mobile menu, product images, viewport overflow, and JavaScript console errors. It saves fresh screenshots to `docs/screenshots/fe1-01/`.
 
-In a second terminal, with Chrome installed:
+## Screenshot / output
 
-```bash
-node frontend/scripts/verify-fe1.mjs
-```
+Browser verification output from the local branch:
 
-The browser verification passed for:
+`PASS: 320/390/768/1440 px layouts, search navigation, category links, combined and invalid filters, sort order, empty state, favorite and mobile menu; no JavaScript console errors.`
 
-- Home search and category shortcuts opening the correct results.
-- Browse search, combined category/condition/price filters, invalid price feedback and Clear Filters.
-- Actual ascending and descending price order, plus sort value synchronization with the URL.
-- Empty search results and the action that restores all listings.
-- Demo favorite toggle and mobile menu.
-- Product image loading, no horizontal overflow at 320, 390, 768 and 1440 px, and no JavaScript console errors.
+Desktop and 390 px mobile screenshots are included:
 
-## Screenshots
+- Home: `docs/screenshots/fe1-01/home-desktop.png`, `docs/screenshots/fe1-01/home-mobile.png`
+- Browse: `docs/screenshots/fe1-01/browse-desktop.png`, `docs/screenshots/fe1-01/browse-mobile.png`
+- Search Results: `docs/screenshots/fe1-01/search-desktop.png`, `docs/screenshots/fe1-01/search-mobile.png`
 
-| Page | Desktop | Mobile (390 px) |
-| --- | --- | --- |
-| Home | [View desktop](https://github.com/anotify-vie/NEU-Student-Marketplace/blob/fe1/issue-1-home-browse-search/docs/screenshots/fe1-01/home-desktop.png) | [View mobile](https://github.com/anotify-vie/NEU-Student-Marketplace/blob/fe1/issue-1-home-browse-search/docs/screenshots/fe1-01/home-mobile.png) |
-| Browse | [View desktop](https://github.com/anotify-vie/NEU-Student-Marketplace/blob/fe1/issue-1-home-browse-search/docs/screenshots/fe1-01/browse-desktop.png) | [View mobile](https://github.com/anotify-vie/NEU-Student-Marketplace/blob/fe1/issue-1-home-browse-search/docs/screenshots/fe1-01/browse-mobile.png) |
-| Search Results | [View desktop](https://github.com/anotify-vie/NEU-Student-Marketplace/blob/fe1/issue-1-home-browse-search/docs/screenshots/fe1-01/search-desktop.png) | [View mobile](https://github.com/anotify-vie/NEU-Student-Marketplace/blob/fe1/issue-1-home-browse-search/docs/screenshots/fe1-01/search-mobile.png) |
+The three implemented pages loaded correctly with mock data. Links to Login, My Listings, Create Listing, and Item Detail currently lead to missing routes; they need their separately assigned pages before the issue's full navigation criterion can pass. Backend search integration is pending API availability and is not required to run this PR.
 
-## API contract and integration
+---
 
-Mock items use the Item fields from `docs/api-contract.md`. The adapter accepts `q`, `category`, `min_price`, `max_price`, `condition`, `status`, `sort`, `page` and `page_size`, and returns `{ items, total, page, page_size }`. Prices remain integer VND values in data and are formatted as VND in the UI. No API contract changes are proposed. FE2 should review the shared adapter before extending it with authentication and write operations.
+## Definition of Done
 
-## Remaining dependencies
+- [ ] Every acceptance criterion on #1 passes, including linked destination pages.
+- [ ] The code has been verified from a clean clone.
+- [x] Browser verification covers search, filtering, sorting, empty states, responsive layouts, and console errors.
+- [ ] Hosted CI is green; no hosted CI result was available for this local change.
+- [x] No secrets, API keys, `.env` files, database files, or user uploads are in the diff.
+- [x] No commented-out dead code is left behind.
+- [x] Desktop and mobile screenshots and the verification script are included.
+- [ ] A teammate has reviewed the shared API adapter and cross-page navigation.
 
-- Login, My Listings and Create Listing are FE2 pages and are not present in the starter repository. Their header/CTA links currently point to routes that will return 404 until those pages are added.
-- Product cards link to `pages/item-detail.html?id=...`, which is a separate FE1 screen and is not present yet.
-- Backend search integration is pending API availability; this PR intentionally runs in mock mode.
+## Author declaration
 
-The three implemented pages can be reviewed now. The issue's full cross-page navigation criterion should be rechecked after the destination pages are integrated.
+- [ ] I wrote this code, or I have named every other contributor below.
+- [ ] Where I used an AI assistant, I have said so and I can explain every line if asked.
+
+AI assistance used: OpenAI Codex assisted with the frontend implementation, local assets, browser verification, screenshots, and this PR description. The PR author should review the final diff and confirm the declarations above.
+
+## Reviewer
+
+Request substantive review from the FE2 developer, provided they did not coauthor this PR. The reviewer should verify the shared mock-data/API interface, repeat the browser checks, inspect desktop and mobile screenshots, and recheck the pending links after their destination pages are integrated. Keep #1 open until those checks pass.
