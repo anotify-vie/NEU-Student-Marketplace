@@ -1,4 +1,4 @@
-import { getCurrentUser } from './api.js';
+import { getCurrentUser, logout } from './api.js';
 
 const root = document.body.dataset.root || '.';
 const page = document.body.dataset.page || '';
@@ -16,7 +16,7 @@ function icon(name) {
 export function renderShell() {
   const accountTarget = 'pages/login.html';
   const accountLabel = 'Account';
-  document.getElementById('site-header').innerHTML = `<div class="header-inner"><a class="brand" href="${path('index.html')}" aria-label="NEU Student Marketplace home"><span class="brand-mark" aria-hidden="true">N</span><span>NEU Student Marketplace</span></a><nav class="desktop-nav" aria-label="Main navigation"><a href="${path('index.html')}" ${page==='home'?'aria-current="page"':''}>Home</a><a href="${path('pages/browse.html')}" ${page==='browse'||page==='search'?'aria-current="page"':''}>Categories</a><a href="${path('pages/my-listings.html')}">My Listings</a></nav><div class="header-actions"><a class="icon-link" href="${path('pages/search.html')}" aria-label="Search">${icon('search')}</a><a class="account-link" href="${path(accountTarget)}" aria-label="Checking account"><span class="avatar" aria-hidden="true">${icon('user')}</span><span class="account-label">${accountLabel}</span></a></div><button class="mobile-menu-button" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false">☰</button></div><nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Categories</a><a href="${path('pages/search.html')}">Search</a><a href="${path('pages/my-listings.html')}">My Listings</a><a href="${path(accountTarget)}">${accountLabel}</a></nav>`;
+  document.getElementById('site-header').innerHTML = `<div class="header-inner"><a class="brand" href="${path('index.html')}" aria-label="NEU Student Marketplace home"><span class="brand-mark" aria-hidden="true">N</span><span>NEU Student Marketplace</span></a><nav class="desktop-nav" aria-label="Main navigation"><a href="${path('index.html')}" ${page==='home'?'aria-current="page"':''}>Home</a><a href="${path('pages/browse.html')}" ${page==='browse'||page==='search'?'aria-current="page"':''}>Categories</a><a href="${path('pages/my-listings.html')}" ${page==='my-listings'?'aria-current="page"':''}>My Listings</a><a href="${path('pages/chat.html')}" ${page==='chat'?'aria-current="page"':''}>Messages</a></nav><div class="header-actions"><a class="icon-link" href="${path('pages/search.html')}" aria-label="Search">${icon('search')}</a><a class="account-link" href="${path(accountTarget)}" aria-label="Checking account"><span class="avatar" aria-hidden="true">${icon('user')}</span><span class="account-label">${accountLabel}</span></a><button class="logout-button" type="button" hidden>Log Out</button></div><button class="mobile-menu-button" type="button" aria-label="Open menu" aria-controls="mobile-nav" aria-expanded="false">☰</button></div><nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Categories</a><a href="${path('pages/search.html')}">Search</a><a href="${path('pages/my-listings.html')}" ${page==='my-listings'?'aria-current="page"':''}>My Listings</a><a href="${path('pages/chat.html')}" ${page==='chat'?'aria-current="page"':''}>Messages</a><a class="mobile-account-link" href="${path(accountTarget)}">${accountLabel}</a><button class="logout-button" type="button" hidden>Log Out</button></nav><p class="session-notice" role="alert" hidden></p>`;
   document.getElementById('site-footer').innerHTML = `<div class="footer-inner"><span>© 2026 NEU Student Marketplace. Made for the student community.</span><nav class="footer-links" aria-label="Footer navigation"><a href="${path('index.html')}">Home</a><a href="${path('pages/browse.html')}">Browse</a><a href="${path('pages/search.html')}">Search</a></nav></div>`;
   const menuButton = document.querySelector('.mobile-menu-button');
   menuButton.addEventListener('click', () => {
@@ -25,8 +25,18 @@ export function renderShell() {
     menuButton.setAttribute('aria-label',open?'Close menu':'Open menu');
     document.getElementById('mobile-nav').classList.toggle('open',open);
   });
+  const closeMenu = () => {
+    menuButton.setAttribute('aria-expanded','false');
+    menuButton.setAttribute('aria-label','Open menu');
+    document.getElementById('mobile-nav').classList.remove('open');
+  };
+  document.addEventListener('keydown',event => {
+    if (event.key === 'Escape' && menuButton.getAttribute('aria-expanded') === 'true') { closeMenu(); menuButton.focus(); }
+  });
+  document.addEventListener('click',event => { if (!document.getElementById('site-header').contains(event.target)) closeMenu(); });
+  window.matchMedia('(max-width:800px)').addEventListener('change',closeMenu);
   const accountLink = document.querySelector('.account-link');
-  const mobileAccountLink = document.querySelector('.mobile-nav a:last-child');
+  const mobileAccountLink = document.querySelector('.mobile-account-link');
   return getCurrentUser().then(user => {
     const target = path(user ? 'pages/profile.html' : 'pages/login.html');
     const label = user ? 'Profile' : 'Log In';
@@ -35,6 +45,19 @@ export function renderShell() {
     accountLink.querySelector('.account-label').textContent = label;
     mobileAccountLink.href = target;
     mobileAccountLink.textContent = label;
+    document.querySelectorAll('.logout-button').forEach(button => {
+      button.hidden = !user;
+      button.addEventListener('click',async () => {
+        document.querySelectorAll('.logout-button').forEach(control => { control.disabled = true; });
+        try { await logout(); location.assign(path('index.html')); }
+        catch(error) {
+          const notice = document.querySelector('.session-notice');
+          notice.textContent = error.message || 'Unable to log out. Please try again.';
+          notice.hidden = false;
+          document.querySelectorAll('.logout-button').forEach(control => { control.disabled = false; });
+        }
+      });
+    });
   }).catch(() => {
     accountLink.setAttribute('aria-label','Account status unavailable');
   });

@@ -149,12 +149,9 @@ export async function openConversation(itemId) {
 }
 
 export async function getConversations() {
-  const user = await getCurrentUser();
-  if (!user) throw new Error('Please log in to view conversations.');
-  if (API_MODE === 'mock') return mockConversations().filter(entry => entry.buyer_id === user.id || entry.seller_id === user.id);
-  const response = await fetch(`${API_BASE_URL}/conversations`, {credentials:'include'});
-  if (!response.ok) throw new Error('Unable to load conversations. Please try again.');
-  return response.json();
+  const user = await requireUser();
+  if (API_MODE === 'mock') return mockConversations().filter(entry => entry.buyer_id === user.id || entry.seller_id === user.id).sort((a,b) => b.updated_at.localeCompare(a.updated_at) || b.id - a.id);
+  return request('/conversations');
 }
 
 // Mock account records contain password hashes only. These fixtures are demo accounts.
@@ -211,22 +208,29 @@ export async function register({display_name,email,password}) {
 
 // IndexedDB keeps up to five 5 MB images per listing without localStorage's small quota.
 let mockDatabase;
-function itemStore(method,value) {
+function itemStore(method,value,store = 'items') {
   mockDatabase ||= new Promise((resolve,reject) => {
-    const open = indexedDB.open('neu-marketplace-demo',1);
-    open.onupgradeneeded = () => open.result.createObjectStore('items',{keyPath:'id'});
-    open.onsuccess = () => resolve(open.result);
+    const open = indexedDB.open('neu-marketplace-demo',2);
+    open.onupgradeneeded = () => {
+      if (!open.result.objectStoreNames.contains('items')) open.result.createObjectStore('items',{keyPath:'id'});
+      if (!open.result.objectStoreNames.contains('messages')) open.result.createObjectStore('messages',{keyPath:'id',autoIncrement:true});
+    };
+    open.onblocked = () => reject(new Error('Please close other marketplace tabs and reload to update demo storage.'));
+    open.onsuccess = () => {
+      open.result.onversionchange = () => { open.result.close(); mockDatabase = null; };
+      resolve(open.result);
+    };
     open.onerror = () => reject(new Error('Unable to open demo storage. Please allow browser storage and reload.'));
   });
   return mockDatabase.then(database => new Promise((resolve,reject) => {
-    const transaction = database.transaction('items',method === 'getAll' ? 'readonly' : 'readwrite');
-    const operation = transaction.objectStore('items')[method](...(value === undefined ? [] : [value]));
+    const transaction = database.transaction(store,method === 'getAll' ? 'readonly' : 'readwrite');
+    const operation = transaction.objectStore(store)[method](...(value === undefined ? [] : [value]));
     transaction.oncomplete = () => resolve(operation.result);
     transaction.onabort = () => reject(new Error('Unable to save demo data. Check available browser storage and try again.'));
   }));
 }
 async function allMockItems() {
-  return [...new Map([...mockItems,...await itemStore('getAll')].map(item => [item.id,item])).values()];
+  return [...new Map([...mockItems,...await itemStore('getAll')].map(item => [item.id,item])).values()].filter(item => !item.deleted);
 }
 
 async function requireUser() {
@@ -280,4 +284,88 @@ export async function updateItem(id,values) {
   const updated = {...item,...data};
   await itemStore('put',updated);
   return updated;
+}
+
+export async function logout() {
+  if (API_MODE !== 'mock') return request('/auth/logout',{method:'POST'});
+  sessionStorage.removeItem(MOCK_SESSION_KEY);
+}
+
+export async function getMyItems() {
+  const user = await requireUser();
+  if (API_MODE !== 'mock') return request('/me/items');
+  return (await allMockItems()).filter(item => item.seller_id === user.id).sort((a,b) => b.created_at.localeCompare(a.created_at));
+}
+
+async function ownedItem(id) {
+  const user = await requireUser();
+  const item = await getItem(id);
+  if (item.seller_id !== user.id) throw Object.assign(new Error('You can only manage your own listings.'),{status:403});
+  return item;
+}
+export async function updateItemStatus(id,status) {
+  if (API_MODE !== 'mock') return request(`/items/${Number(id)}/status`,jsonRequest('PATCH',{status}));
+  const item = await ownedItem(id);
+  const transitions = {available:['reserved','sold'],reserved:['available','sold'],sold:[]};
+  if (!transitions[item.status].includes(status)) throw new Error('This status change is not allowed. Sold listings cannot be reopened.');
+  const updated = {...item,status};
+  await itemStore('put',updated);
+  return updated;
+}
+export async function deleteItem(id) {
+  if (API_MODE !== 'mock') return request(`/items/${Number(id)}`,{method:'DELETE'});
+  await ownedItem(id);
+  // A tombstone also hides original fixtures after a reload.
+  await itemStore('put',{id:Number(id),deleted:true});
+}
+
+async function participantConversation(id) {
+  const user = await requireUser();
+  const conversation = mockConversations().find(entry => entry.id === Number(id));
+  if (!conversation) throw Object.assign(new Error('This conversation could not be found.'),{status:404});
+  if (![conversation.buyer_id,conversation.seller_id].includes(user.id)) throw Object.assign(new Error('You do not have access to this conversation.'),{status:403});
+  return {user,conversation};
+}
+export async function getMessages(id,afterId) {
+  if (API_MODE !== 'mock') return request(`/conversations/${Number(id)}/messages${afterId === undefined ? '' : `?after_id=${Number(afterId)}`}`);
+  await participantConversation(id);
+  const messages = (await itemStore('getAll',undefined,'messages')).filter(message => message.conversation_id === Number(id))
+    .sort((a,b) => a.created_at.localeCompare(b.created_at) || a.id - b.id);
+  return afterId === undefined ? messages.slice(-50) : messages.filter(message => message.id > Number(afterId));
+}
+export async function sendMessage(id,text) {
+  text = String(text).trim();
+  if (!text || text.length > 1000) throw new Error('Enter a message between 1 and 1,000 characters.');
+  if (API_MODE !== 'mock') return request(`/conversations/${Number(id)}/messages`,jsonRequest('POST',{text}));
+  const {user,conversation} = await participantConversation(id);
+  const message = {conversation_id:conversation.id,sender_id:user.id,text,created_at:new Date().toISOString()};
+  message.id = await itemStore('add',message,'messages');
+  saveMockConversations(mockConversations().map(entry => entry.id === conversation.id ? {...entry,updated_at:message.created_at} : entry));
+  return message;
+}
+
+// Explicit demo action; normal visits never insert fictional messages into user threads.
+export async function loadDemoConversations() {
+  if (API_MODE !== 'mock') throw new Error('Demo conversations are available in mock mode only.');
+  const user = await requireUser();
+  if (![1,2].includes(user.id)) throw new Error('Sign in with a demo account to load sample conversations.');
+  const items = await allMockItems();
+  for (const [buyerId,itemId] of [[1,101],[3,101],[2,102],[1,102]]) {
+    const item = items.find(entry => entry.id === itemId);
+    if (!item || ![buyerId,item.seller_id].includes(user.id)) continue;
+    let conversations = mockConversations();
+    let conversation = conversations.find(entry => entry.item_id === itemId && entry.buyer_id === buyerId);
+    if (!conversation) {
+      if (item.status === 'sold') continue;
+      conversation = {id:Math.max(1000,...conversations.map(entry => entry.id))+1,item_id:itemId,buyer_id:buyerId,seller_id:item.seller_id,updated_at:new Date().toISOString()};
+      saveMockConversations([...conversations,conversation]);
+    }
+    if ((await getMessages(conversation.id)).length) continue;
+    const now = Date.now();
+    for (const [sender_id,text,offset] of [[buyerId,'Hello! Is this item still available?',120000],[item.seller_id,'Yes! We can meet near the NEU library.',60000]]) {
+      await itemStore('add',{conversation_id:conversation.id,sender_id,text,created_at:new Date(now-offset).toISOString()},'messages');
+    }
+    conversations = mockConversations();
+    saveMockConversations(conversations.map(entry => entry.id === conversation.id ? {...entry,updated_at:new Date(now-60000).toISOString()} : entry));
+  }
 }

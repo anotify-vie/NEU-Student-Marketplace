@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Messages | NEU Student Marketplace</title>
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body data-page="chat" data-root="..">
+  <header class="site-header" id="site-header"></header>
+  <main class="site-main workspace-main">
+    <div class="workspace-heading"><div><p class="section-kicker">Your campus connections</p><h1>Messages</h1></div><button id="demo-chat" class="button button-outline" type="button" hidden>Load Demo Conversations</button></div>
+    <p id="chat-notice" class="workspace-notice" role="status"></p>
+    <button id="chat-retry" class="button button-outline" type="button" hidden>Retry</button>
+    <section id="chat-layout" class="chat-layout" aria-label="Messaging">
+      <aside class="conversation-panel" aria-label="Conversations">
+        <h2>Your conversations</h2>
+        <p id="conversation-status" class="content-status" role="status">Loading conversations…</p>
+        <div id="conversation-list" class="conversation-list"></div>
+        <div id="no-conversations" class="workspace-empty" hidden><h2>No conversations yet</h2><p>Find an item and contact its seller to get started.</p><a class="button button-primary" href="browse.html">Browse Products</a></div>
+      </aside>
+      <div id="choose-conversation" class="choose-conversation"><h2>A conversation starts here</h2><p>Select a conversation to view your messages.</p></div>
+      <section id="chat-thread" class="thread-panel" aria-label="Active conversation" hidden>
+        <header class="thread-heading"><button id="back-conversations" class="button button-outline" type="button">← Conversations</button><span id="thread-avatar" class="chat-avatar" aria-hidden="true"></span><a id="thread-person" href="profile.html"></a></header>
+        <a id="thread-product" class="thread-product" href="browse.html"></a>
+        <p id="thread-status" class="thread-status" role="status"></p>
+        <ol id="message-list" class="message-list" role="log" aria-label="Messages" aria-live="polite" aria-relevant="additions text"></ol>
+        <form id="message-form" class="message-form" novalidate>
+          <label class="sr-only" for="message-input">Message</label>
+          <textarea id="message-input" name="message" rows="2" maxlength="1000" placeholder="Type a message…" aria-describedby="message-error" required></textarea>
+          <button class="button button-primary" type="submit">Send</button>
+          <p id="message-error" role="alert"></p>
+        </form>
+      </section>
+    </section>
+  </main>
+  <footer class="site-footer" id="site-footer"></footer>
+  <script type="module" src="../js/chat.js"></script>
+</body>
+</html>

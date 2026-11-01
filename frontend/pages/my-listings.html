@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Listings | NEU Student Marketplace</title>
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body data-page="my-listings" data-root="..">
+  <header class="site-header" id="site-header"></header>
+  <main class="site-main workspace-main">
+    <div class="workspace-heading"><div><p class="section-kicker">Your student shop</p><h1>My Listings</h1></div><a class="button button-primary" href="create-listing.html">+ Create Listing</a></div>
+    <section class="management-panel" aria-label="Manage your listings">
+      <div id="listing-tabs" class="listing-tabs" role="tablist" aria-label="Filter listings by status">
+        <button id="tab-all" type="button" role="tab" aria-selected="true" aria-controls="listing-panel" data-status="all">All</button>
+        <button id="tab-available" type="button" role="tab" aria-selected="false" aria-controls="listing-panel" tabindex="-1" data-status="available">Available</button>
+        <button id="tab-reserved" type="button" role="tab" aria-selected="false" aria-controls="listing-panel" tabindex="-1" data-status="reserved">Reserved</button>
+        <button id="tab-sold" type="button" role="tab" aria-selected="false" aria-controls="listing-panel" tabindex="-1" data-status="sold">Sold</button>
+      </div>
+      <p id="listings-status" class="content-status" role="status">Loading your listings…</p>
+      <button id="listings-retry" class="button button-outline" type="button" hidden>Retry</button>
+      <p id="listings-feedback" class="workspace-notice" role="status"></p>
+      <div id="listing-panel" role="tabpanel" aria-labelledby="tab-all">
+        <table id="listing-table" class="listing-table" hidden>
+          <caption class="sr-only">Your listings and management actions</caption>
+          <thead><tr><th scope="col">Product</th><th scope="col">Price</th><th scope="col">Status</th><th scope="col">Posted</th><th scope="col">Actions</th></tr></thead>
+          <tbody id="listing-rows"></tbody>
+        </table>
+        <div id="listings-empty" class="workspace-empty" hidden><h2 id="listings-empty-title">No listings yet</h2><p>Pass on something useful to another student.</p><a class="button button-primary" href="create-listing.html">Create Listing</a></div>
+      </div>
+    </section>
+    <dialog id="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description">
+      <form id="delete-form" method="dialog">
+        <h2 id="delete-title">Delete listing?</h2>
+        <p id="delete-description"></p>
+        <p id="delete-error" role="alert"></p>
+        <div class="dialog-actions"><button class="button button-outline" value="cancel" autofocus>Cancel</button><button class="button button-danger" value="delete">Delete Listing</button></div>
+      </form>
+    </dialog>
+  </main>
+  <footer class="site-footer" id="site-footer"></footer>
+  <script type="module" src="../js/my-listings.js"></script>
+</body>
+</html>
