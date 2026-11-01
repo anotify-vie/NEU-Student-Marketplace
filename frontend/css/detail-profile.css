@@ -11,9 +11,6 @@
 .thumbnail-button img{width:100%;height:100%;object-fit:cover}
 .detail-summary{padding:25px}
 .detail-summary-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
-.status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:800}
-.status-badge:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.status-available{background:#e5f8eb;color:#168446}.status-reserved{background:#fff3d8;color:#a46800}.status-sold{background:#ffe9eb;color:#bc3248}
 .posted-date{color:var(--muted);font-size:12px}
 .detail-summary h1{margin:0 0 7px;font-size:clamp(27px,2.5vw,36px);font-weight:850}
 .detail-price{margin:0 0 16px;color:var(--primary);font-size:28px;font-weight:850;letter-spacing:-.035em}
