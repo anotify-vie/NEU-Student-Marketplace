@@ -1,0 +1,25 @@
+/* Shared auth and listing forms; base.css and components.css provide the shell. */
+.auth-main{display:grid;place-items:center;padding-block:40px}
+.auth-card{display:grid;grid-template-columns:.85fr 1fr;width:min(940px,100%);overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow)}
+.auth-art{display:flex;align-items:end;min-height:600px;padding:30px;background:linear-gradient(180deg,transparent 25%,rgba(14,42,78,.9)),url('../assets/campus-hero.png') 65% center/cover}
+.auth-art h2{margin-block:10px;font-size:36px;color:white}.auth-art p{color:#e5efff}.auth-art .section-kicker{color:#c7e1ff}
+.auth-content{padding:36px 40px}.auth-brand{display:block;margin-bottom:28px;color:var(--primary);font-size:14px;font-weight:800}
+.auth-content h1,.listing-card h1{margin-bottom:10px;font-size:28px}.form-intro{color:var(--muted);margin-bottom:24px}
+.form-field{display:flex;flex-direction:column;gap:6px;min-width:0;margin-bottom:15px}
+.form-field label{font-size:13px;font-weight:750}
+.form-field input,.form-field select,.form-field textarea{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:white;color:var(--text);font:inherit}
+.form-field textarea{resize:vertical;min-height:110px}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:2px solid #bdd5ff;outline-offset:1px;border-color:var(--primary)}
+.form-field [aria-invalid="true"]{border-color:#b4233b}.field-error{min-height:0;color:#b4233b;font-size:12px}.field-error:empty{display:none}
+.password-input{position:relative}.password-input input{padding-right:66px}.password-toggle{position:absolute;right:4px;top:4px;bottom:4px;padding-inline:10px;border:0;border-radius:5px;background:#edf4ff;color:var(--primary);font-size:12px;font-weight:700}
+.submit-button{width:100%}.auth-switch{margin:22px 0;text-align:center;font-size:13px}.auth-switch a{color:var(--primary);font-weight:750}
+.demo-note{padding:14px 16px;border-radius:8px;background:#f0f6ff;font-size:12px;overflow-wrap:anywhere}.demo-note p{margin:6px 0}.demo-note small{color:var(--muted)}
+.form-message{margin:10px 0;color:#167946;font-size:13px;overflow-wrap:anywhere}.form-message:empty{display:none}.form-message.is-error,#page-error-message{color:#b4233b}
+.listing-main{padding-block:24px 45px}.listing-card{max-width:780px;margin:20px auto 0;padding:30px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}.form-actions{display:flex;gap:12px;margin-top:18px}.form-actions .button-primary{flex:1}
+.upload-zone{padding:20px;border:1px dashed #b8cae1;border-radius:8px;background:#f7faff;text-align:center}.upload-icon{font-size:28px;color:var(--primary)}.upload-zone p{margin:5px 0 12px;font-size:13px}.upload-zone input{width:1px;height:1px;min-height:0;padding:0;border:0}.upload-zone .image-picker{min-height:40px;color:var(--primary);cursor:pointer}.upload-zone:focus-within{outline:3px solid #ffb829;outline-offset:3px}.upload-zone #images-hint{margin:10px 0 0;color:var(--muted);font-size:11px}
+.image-previews{display:flex;flex-wrap:wrap;gap:12px}.image-previews figure{position:relative;width:110px;margin:6px 0 0}.image-previews img{width:110px;height:90px;object-fit:cover;border:1px solid var(--border);border-radius:8px}.remove-image{position:absolute;top:3px;right:3px;display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--border);border-radius:50%;background:white;color:#b4233b;font-size:22px}
+form[aria-busy="true"]{pointer-events:none;opacity:.75}button:disabled{cursor:wait;opacity:.6}.listing-success{padding:28px 0;color:#167946}.listing-success h2{font-size:26px}.listing-success p{color:var(--muted)}
+[hidden]{display:none!important}
+@media(max-width:700px){.auth-main{padding-block:24px}.auth-card{grid-template-columns:1fr}.auth-art{min-height:170px;padding:20px;background-position:center 48%}.auth-art h2{font-size:26px}.auth-art p:last-child{display:none}.auth-content{padding:26px 22px}.auth-brand{margin-bottom:20px}.listing-card{padding:22px}.form-row{grid-template-columns:1fr;gap:0}}
+@media(max-width:380px){.auth-content,.listing-card{padding:20px 16px}.auth-content h1,.listing-card h1{font-size:25px}.image-previews{gap:8px}.image-previews figure,.image-previews img{width:100px}}
