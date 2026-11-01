@@ -12,6 +12,13 @@ const empty = document.getElementById('empty-state');
 const sortSelect = document.getElementById('sort-select');
 const searchInput = document.querySelector('.toolbar-search input');
 const queryLabel = document.getElementById('query-label');
+const loadMore = document.getElementById('load-more');
+const visibleCount = document.getElementById('visible-count');
+const PAGE_SIZE = 50;
+let nextPage = 1;
+let total = 0;
+let loadingPage = null;
+let loadedPages = new Set();
 
 const categoryOptions = [
   ['','All Categories'],['textbooks','Textbooks'],['uniforms','Uniforms'],
@@ -108,9 +115,112 @@ function validPriceRange() {
   return !message;
 }
 
+function updateLoadMore() {
+  const shown = grid.querySelectorAll('.product-card').length;
+  visibleCount.textContent = total ? `Showing ${shown} of ${total} listings` : '';
+  loadMore.hidden = !total || shown >= total;
+}
+
+async function fetchPage(page, currentRequest) {
+  if (currentRequest !== requestId) return;
+
+  // Prevent duplicate or concurrent requests
+  if (loadingPage !== null || loadedPages.has(page)) return;
+
+  loadingPage = page;
+  loadMore.disabled = true;
+  loadMore.textContent = 'Loading…';
+
+  try {
+    const result = await getItems({
+      ...state,
+      status: 'available',
+      page,
+      page_size: PAGE_SIZE
+    });
+
+    if (currentRequest !== requestId) return;
+
+    if (
+      !result ||
+      !Array.isArray(result.items) ||
+      !Number.isFinite(Number(result.total))
+    ) {
+      throw new Error('Invalid listing response. Please try again.');
+    }
+
+    // Prevent appending the same page twice
+    if (loadedPages.has(page)) return;
+
+    total = Number(result.total);
+
+    if (page === 1) {
+      renderCards(grid, result.items);
+    } else {
+      const additions = document.createElement('div');
+      renderCards(additions, result.items);
+      grid.append(...additions.children);
+    }
+
+    loadedPages.add(page);
+    nextPage = page + 1;
+
+    count.textContent = `(${total})`;
+    empty.hidden = total > 0;
+    status.textContent = '';
+
+    updateLoadMore();
+
+  } catch (error) {
+    if (currentRequest !== requestId) return;
+
+    if (page === 1) {
+      grid.replaceChildren();
+      total = 0;
+      count.textContent = '';
+      empty.hidden = true;
+      updateLoadMore();
+    }
+
+    status.textContent =
+      error.message || 'Unable to load listings. Please try again.';
+
+    const retry = document.createElement('button');
+    retry.className = 'button button-outline';
+    retry.type = 'button';
+    retry.textContent = 'Retry';
+
+    retry.addEventListener('click', () => {
+      if (loadingPage !== null) return;
+
+      if (page === 1) {
+        loadProducts();
+      } else {
+        fetchPage(page, currentRequest);
+      }
+    });
+
+    status.append(document.createElement('br'), retry);
+
+  } finally {
+    // Only the active request can release the lock
+    if (currentRequest === requestId) {
+      loadingPage = null;
+      loadMore.disabled = false;
+      loadMore.textContent = 'Load More';
+    }
+  }
+}
+
 async function loadProducts() {
   updateHeading();
   const currentRequest = ++requestId;
+  loadingPage = null;
+  loadedPages = new Set();
+  nextPage = 1;
+  total = 0;
+  loadMore.hidden = true;
+  visibleCount.textContent = '';
   if (!validPriceRange()) {
     grid.replaceChildren();
     count.textContent = '';
@@ -120,24 +230,19 @@ async function loadProducts() {
   }
   status.textContent = isSearch ? 'Searching listings…' : 'Loading listings…';
   empty.hidden = true;
-  try {
-    const result = await getItems({...state,status:'available',page:1,page_size:50});
-    if (currentRequest !== requestId) return;
-    renderCards(grid,result.items);
-    count.textContent = `(${result.total})`;
-    empty.hidden = result.total > 0;
-    status.textContent = '';
-  } catch(error) {
-    if (currentRequest !== requestId) return;
-    grid.replaceChildren();
-    count.textContent = '';
-    status.textContent = error.message || 'Unable to load listings. Please try again.';
-    const retry = document.createElement('button');
-    retry.className = 'button button-outline'; retry.type = 'button'; retry.textContent = 'Retry';
-    retry.addEventListener('click',loadProducts,{once:true});
-    status.append(document.createElement('br'),retry);
-  }
+  await fetchPage(1,currentRequest);
 }
+
+loadMore.addEventListener('click', () => {
+  if (
+    loadingPage !== null ||
+    loadMore.disabled ||
+    loadMore.hidden ||
+    loadedPages.has(nextPage)
+  ) return;
+
+  fetchPage(nextPage, requestId);
+});
 
 function clearAll() {
   clearTimeout(priceTimer);
