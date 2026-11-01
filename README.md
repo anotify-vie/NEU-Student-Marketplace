@@ -95,4 +95,12 @@ Swagger API: `http://127.0.0.1:8000/docs`. On Windows activate with `.venv\Scrip
 
 Use a GitHub Project board: **Backlog → Ready → In Progress → Review → Done**. Use feature branches and reviewed pull requests; no direct pushes to `main`. See [contributing rules](docs/contributing.md) and [assignments](docs/tasks.md).
 
-**Starter kit status:** Contains documentation, the English mockup and starter folders only. No working frontend or backend yet, and no GitHub repository was automatically created or modified.
+## Current implementation status
+
+The frontend is implemented in semantic HTML, CSS and vanilla JavaScript, including Home, Browse, Search, Item Detail, Profile, authentication, listing management and chat demo screens. It currently uses **mock mode** (`API_MODE = 'mock'` in `frontend/js/api.js`); this is not a claim that live backend integration is complete.
+
+Browse and Search retrieve listings in batches of up to 50 and provide **Load More** when further matching listings exist. The result count shows the full number of matches while the displayed count shows how many cards have loaded. Changing filters or sorting starts again at the first batch.
+
+**Run frontend:** serve the repository with VS Code Live Server and open `frontend/index.html`. Do not use the `file://` protocol. API-mode integration, end-to-end checks, and peer review of responsive changes must be completed and recorded separately before claiming overall project sign-off.
+
+**Original starter:** this repository began with the English mockup, documentation and empty starter folders; that starter-only status is no longer current.
