@@ -1,4 +1,4 @@
-# Frontend acceptance — 2026-11-01
+# Frontend acceptance 
 
 ## Result and scope
 
