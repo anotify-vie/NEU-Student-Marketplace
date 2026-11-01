@@ -22,6 +22,7 @@
         <div class="catalog-toolbar"><div><p class="section-kicker">Explore the marketplace</p><h1 id="catalog-title">Search Results <span id="query-label"></span> <span id="result-count" class="result-count"></span></h1></div><div class="toolbar-actions"><form class="search-form toolbar-search" action="search.html" method="get" role="search"><label class="sr-only" for="results-search">Search products</label><input id="results-search" type="search" name="q" placeholder="Search products..."><button type="submit" aria-label="Search products">⌕</button></form><label class="sort-label" for="sort-select">Sort by <select id="sort-select" name="sort"><option value="newest">Newest</option><option value="price_asc">Price: Low to High</option><option value="price_desc">Price: High to Low</option></select></label></div></div>
         <div id="catalog-status" class="content-status" role="status">Searching listings…</div>
         <div id="product-grid" class="product-grid catalog-grid" aria-live="polite"></div>
+        <div class="catalog-pagination"><p id="visible-count" class="filter-hint" role="status"></p><button id="load-more" class="button button-outline" type="button" hidden>Load More</button></div>
         <div id="empty-state" class="empty-state" hidden><div class="empty-icon" aria-hidden="true">⌕</div><h2>No matching items found</h2><p>Try a different search term or adjust your filters.</p><button class="button button-primary" id="clear-empty" type="button">Clear Filters</button></div>
       </section>
     </div>
