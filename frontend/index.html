@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Discover second-hand textbooks, uniforms and everyday essentials from the NEU student community.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <title>Home | NEU Student Marketplace</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body data-page="home" data-root=".">
+  <header class="site-header" id="site-header"></header>
+  <main class="site-main home-main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-content">
+        <span class="eyebrow">A marketplace made for NEU students</span>
+        <h1 id="hero-title">Give your items a<br><span>second life at NEU.</span></h1>
+        <p>Buy and sell used textbooks, uniforms, and student essentials within the NEU community.</p>
+        <form class="search-form hero-search" action="pages/search.html" method="get" role="search">
+          <label class="sr-only" for="home-search">Search products</label>
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="home-search" name="q" type="search" placeholder="Search for books, uniforms, items..." autocomplete="off">
+          <button class="button button-primary" type="submit" aria-label="Search products">Search</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="home-section" aria-labelledby="categories-title">
+      <div class="section-heading"><div><p class="section-kicker">Explore by category</p><h2 id="categories-title">What are you looking for?</h2></div></div>
+      <div class="category-grid">
+        <a class="category-tile tile-books" href="pages/browse.html?category=textbooks"><span class="category-art" aria-hidden="true">📚</span><span>Textbooks</span><small>Find your next read</small></a>
+        <a class="category-tile tile-uniforms" href="pages/browse.html?category=uniforms"><span class="category-art" aria-hidden="true">👕</span><span>Uniforms</span><small>Ready for class</small></a>
+        <a class="category-tile tile-supplies" href="pages/browse.html?category=study_tools"><span class="category-art" aria-hidden="true">✏️</span><span>Study Supplies</span><small>Tools to do your best</small></a>
+        <a class="category-tile tile-essentials" href="pages/browse.html?category=student_items"><span class="category-art" aria-hidden="true">🎒</span><span>Student Essentials</span><small>Everyday favorites</small></a>
+        <a class="category-tile tile-other" href="pages/browse.html?category=other"><span class="category-art" aria-hidden="true">✨</span><span>Others</span><small>More to discover</small></a>
+      </div>
+    </section>
+
+    <section class="home-section recent-section" aria-labelledby="recent-title">
+      <div class="section-heading"><div><p class="section-kicker">Fresh from our community</p><h2 id="recent-title">Recently Listed</h2></div><a class="text-link" href="pages/browse.html">View All <span aria-hidden="true">→</span></a></div>
+      <div id="recent-status" class="content-status" role="status">Loading listings…</div>
+      <div id="recent-grid" class="product-grid home-product-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="sell-banner" aria-labelledby="sell-title"><div><p class="section-kicker">Have something to pass on?</p><h2 id="sell-title">Make room for something new.</h2><p>Give your pre-loved items a new home in the NEU community.</p></div><a class="button button-primary" href="pages/create-listing.html">Create Listing <span aria-hidden="true">→</span></a></section>
+  </main>
+  <footer class="site-footer" id="site-footer"></footer>
+  <script type="module" src="js/home.js"></script>
+</body>
+</html>
