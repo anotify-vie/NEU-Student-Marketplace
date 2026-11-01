@@ -42,23 +42,6 @@ A supplementary local simulated-API check reproduced both orders of the previous
 
 No JavaScript exceptions or console errors were observed in the regression flows. `git diff --check` passed. Existing desktop/mobile evidence is under `docs/screenshots/fe1-01/`, `fe1-02/`, `fe2-01/` and `fe2-02/`; the latter includes tablet views and the mobile audit. README now describes the implemented mock frontend and progressive pagination.
 
-## Issue #2 closure checklist
-
-- [x] Product Detail follows Screen 3's layout structure.
-- [x] Profile follows Screen 8's layout structure.
-- [x] Product data changes with the selected ID.
-- [x] Image switching works.
-- [x] Seller profile navigation works.
-- [x] Chat opens the correct conversation; guest Login and FE2 destinations are integrated.
-- [x] Profile editing works in mock mode, with validation and owner checks.
-- [x] Missing products show a clear error state.
-- [x] Both pages are responsive.
-- [x] No JavaScript console errors were observed in tested flows.
-
-**Issue #2 is technically ready to close as completed for its frontend/mock scope.** Its implementation in PR #10 is integrated with Login and Chat from PRs #11/#12. Keep actual backend/profile API integration in the backend/integration work rather than treating it as completed by this acceptance.
-
-Issue #1's identified pagination blockers are resolved in the reviewed local source. Merge/review the pagination fix into the default branch before closing #1 if that has not already happened.
-
 ## Remaining project work
 
 - BE1/BE2 implementation and integration with an actual backend, including server-side ownership and conversation membership enforcement.
@@ -66,4 +49,4 @@ Issue #1's identified pagination blockers are resolved in the reviewed local sou
 - Joint FE1/FE2 review of shared navigation and responsive changes, recorded according to the contribution workflow.
 - Hosted CI and GitHub Project completion records are not certified by this local acceptance.
 
-Prepared with OpenAI Codex assistance. This report and the local test results support teammate acceptance; no GitHub issue was modified by this review.
+
