@@ -4,6 +4,7 @@ import { mockItems } from './mock-data.js';
 // Change to 'real' after the backend is available and the contract is approved.
 export const API_MODE = 'mock';
 export const API_BASE_URL = 'http://127.0.0.1:8000/api';
+export const MOCK_SESSION_KEY = 'neu-marketplace-demo-user-id';
 
 function numberOrNull(value) {
   if (value === '' || value === null || value === undefined) return null;
@@ -39,5 +40,18 @@ export async function getItems(query = {}) {
   Object.entries(query).forEach(([key,value]) => { if (value !== '' && value !== null && value !== undefined) parameters.set(key,String(value)); });
   const response = await fetch(`${API_BASE_URL}/items?${parameters}`, {credentials:'include'});
   if (!response.ok) throw new Error('Unable to load listings. Please try again.');
+  return response.json();
+}
+
+export async function getCurrentUser() {
+  if (API_MODE === 'mock') {
+    try {
+      const id = Number(sessionStorage.getItem(MOCK_SESSION_KEY));
+      return Number.isSafeInteger(id) && id > 0 ? {id} : null;
+    } catch { return null; }
+  }
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {credentials:'include'});
+  if (response.status === 401) return null;
+  if (!response.ok) throw new Error('Unable to check your account. Please try again.');
   return response.json();
 }

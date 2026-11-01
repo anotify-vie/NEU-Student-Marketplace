@@ -1,3 +1,5 @@
+import { getCurrentUser } from './api.js';
+
 const root = document.body.dataset.root || '.';
 const page = document.body.dataset.page || '';
 const path = target => `${root}/${target}`;
@@ -20,6 +22,23 @@ export function renderShell() {
     menuButton.setAttribute('aria-expanded',String(open));
     menuButton.setAttribute('aria-label',open?'Close menu':'Open menu');
     document.getElementById('mobile-nav').classList.toggle('open',open);
+  });
+  const accountLink = document.querySelector('.account-link');
+  const mobileAccountLink = document.querySelector('.mobile-nav a:last-child');
+  accountLink.querySelector('.account-label').textContent = 'Account';
+  accountLink.setAttribute('aria-label','Checking account');
+  mobileAccountLink.textContent = 'Account';
+  return getCurrentUser().then(user => {
+    const target = path(user ? 'pages/profile.html' : 'pages/login.html');
+    const label = user ? 'Profile' : 'Log In';
+    accountLink.href = target;
+    accountLink.setAttribute('aria-label',user ? 'View profile' : 'Log in');
+    accountLink.querySelector('.account-label').textContent = label;
+    mobileAccountLink.href = target;
+    mobileAccountLink.textContent = label;
+  }).catch(() => {
+    accountLink.setAttribute('aria-label','Account status unavailable');
+    mobileAccountLink.textContent = 'Account';
   });
 }
 
