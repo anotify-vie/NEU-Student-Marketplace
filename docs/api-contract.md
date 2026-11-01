@@ -15,7 +15,7 @@
 
 ```json
 {
-  "User": {"id": 1, "display_name": "Minh Anh Nguyen", "email": "student@example.com", "avatar_url": null},
+  "User": {"id": 1, "display_name": "Minh Anh Nguyen", "email": "student@example.com", "avatar_url": null, "faculty": "Faculty of Economics", "cohort": "K64", "bio": "Economics student at NEU.", "campus": "NEU Main Campus", "joined_at": "2026-10-31T09:00:00+07:00"},
   "Item": {
     "id": 101, "seller_id": 1, "title": "Microeconomics Textbook",
     "category": "textbooks", "price": 45000, "condition": "good",
@@ -32,6 +32,7 @@
 - `condition`: `new`, `good`, `fair`.
 - `status`: `available`, `reserved`, `sold`.
 - Image URLs may be relative paths; `api.js` converts them to backend absolute URLs when needed.
+- Profile updates (`PATCH /api/users/me`) accept optional `display_name` (2–80 chars), `faculty` (2–80 chars), `cohort` (e.g. `K64`) and `bio` (≤300 chars); omitted fields stay unchanged.
 
 ## Endpoints and owners
 
@@ -41,7 +42,8 @@
 | POST | `/api/auth/login` | `{email,password}` → session cookie and user | BE1 |
 | POST | `/api/auth/logout` | Clear session | BE1 |
 | GET | `/api/auth/me` | Current user or 401 | BE1 |
-| GET | `/api/users/{user_id}` | Safe public profile/seller info | BE1 |
+| GET | `/api/users/{user_id}` | Safe public profile/seller info (never includes `email`) | BE1 |
+| PATCH | `/api/users/me` | Update own profile `{display_name?,faculty?,cohort?,bio?}`; 401 if unauthenticated | BE1 |
 | GET | `/api/items/{id}` | Item detail and public seller info | BE1 |
 | POST | `/api/items` | Create authenticated item (JSON fields and uploaded image URLs) | BE1 |
 | PATCH | `/api/items/{id}` | Edit item (owner only) | BE1 |
