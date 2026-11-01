@@ -29,11 +29,11 @@ function numberOrNull(value) {
   return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
-function searchMockItems(query) {
+function searchMockItems(query, catalogue) {
   const keyword = String(query.q || '').trim().toLocaleLowerCase();
   const min = numberOrNull(query.min_price);
   const max = numberOrNull(query.max_price);
-  let items = mockItems.filter(item => {
+  let items = catalogue.filter(item => {
     if (item.status !== (query.status || 'available')) return false;
     if (keyword && !`${item.title} ${item.description}`.toLocaleLowerCase().includes(keyword)) return false;
     if (query.category && item.category !== query.category) return false;
@@ -52,7 +52,7 @@ function searchMockItems(query) {
 }
 
 export async function getItems(query = {}) {
-  if (API_MODE === 'mock') return searchMockItems(query);
+  if (API_MODE === 'mock') return searchMockItems(query, await allMockItems());
   const parameters = new URLSearchParams();
   Object.entries(query).forEach(([key,value]) => { if (value !== '' && value !== null && value !== undefined) parameters.set(key,String(value)); });
   const response = await fetch(`${API_BASE_URL}/items?${parameters}`, {credentials:'include'});
@@ -64,7 +64,7 @@ export async function getItem(id) {
   const itemId = Number(id);
   if (!Number.isSafeInteger(itemId) || itemId < 1) throw new Error('This listing could not be found.');
   if (API_MODE === 'mock') {
-    const item = mockItems.find(entry => entry.id === itemId);
+    const item = (await allMockItems()).find(entry => entry.id === itemId);
     if (!item) throw new Error('This listing could not be found.');
     return {...item,image_urls:[...item.image_urls]};
   }
@@ -86,9 +86,10 @@ export async function getUser(id) {
   const userId = Number(id);
   if (!Number.isSafeInteger(userId) || userId < 1) throw new Error('This profile could not be found.');
   if (API_MODE === 'mock') {
-    const user = mockUsers.find(entry => entry.id === userId);
+    const user = mockUsers.find(entry => entry.id === userId) || mockAccounts().find(entry => entry.id === userId);
     if (!user) throw new Error('This profile could not be found.');
-    return {...user,...storedMockProfile(userId)};
+    const {email, password_hash, salt, ...publicUser} = user;
+    return {...publicUser,...storedMockProfile(userId)};
   }
   const response = await fetch(`${API_BASE_URL}/users/${userId}`, {credentials:'include'});
   if (response.status === 404) throw new Error('This profile could not be found.');
@@ -98,7 +99,7 @@ export async function getUser(id) {
 
 export async function getUserStats(id) {
   if (API_MODE !== 'mock') return null; // A public statistics endpoint is not defined in API v1.
-  const items = mockItems.filter(item => item.seller_id === Number(id));
+  const items = (await allMockItems()).filter(item => item.seller_id === Number(id));
   return {total:items.length,available:items.filter(item => item.status === 'available').length,reserved:items.filter(item => item.status === 'reserved').length,sold:items.filter(item => item.status === 'sold').length};
 }
 
@@ -115,7 +116,10 @@ export async function updateProfile(id,values) {
 
 export async function getCurrentUser() {
   if (API_MODE === 'mock') {
-    try { return mockUsers.find(user => user.id === Number(sessionStorage.getItem(MOCK_SESSION_KEY))) || null; }
+    try {
+      const id = Number(sessionStorage.getItem(MOCK_SESSION_KEY));
+      return id ? await getUser(id) : null;
+    }
     catch { return null; }
   }
   const response = await fetch(`${API_BASE_URL}/auth/me`, {credentials:'include'});
@@ -151,4 +155,129 @@ export async function getConversations() {
   const response = await fetch(`${API_BASE_URL}/conversations`, {credentials:'include'});
   if (!response.ok) throw new Error('Unable to load conversations. Please try again.');
   return response.json();
+}
+
+// Mock account records contain password hashes only. These fixtures are demo accounts.
+const accountsKey = 'neu-marketplace-demo-accounts-v1';
+const demoHash = 'bffbc8471b56fc97f58cbdc1e434d1bbc7cb3ec29974f48adf3984376aff987d';
+function mockAccounts() {
+  const demo = [{id:1,email:'buyer@example.com'},{id:2,email:'seller@example.com'}]
+    .map(account => ({...account,salt:'neu-marketplace-demo',password_hash:demoHash}));
+  return [...demo,...JSON.parse(localStorage.getItem(accountsKey) || '[]')];
+}
+
+async function passwordHash(password,salt) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw',encoder.encode(password),'PBKDF2',false,['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({name:'PBKDF2',salt:encoder.encode(salt),iterations:100000,hash:'SHA-256'},key,256);
+  return Array.from(new Uint8Array(bits),byte => byte.toString(16).padStart(2,'0')).join('');
+}
+
+async function request(route,options = {}) {
+  let response;
+  try { response = await fetch(`${API_BASE_URL}${route}`,{credentials:'include',...options}); }
+  catch { throw new Error('Unable to reach the server. Please try again.'); }
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(typeof body?.detail === 'string' ? body.detail : 'The request failed. Please check your input and try again.');
+    error.status = response.status;
+    throw error;
+  }
+  return body;
+}
+function jsonRequest(method,body) {
+  return {method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)};
+}
+
+export async function login({email,password}) {
+  if (API_MODE !== 'mock') return request('/auth/login',jsonRequest('POST',{email,password}));
+  const account = mockAccounts().find(entry => entry.email === email.trim().toLowerCase());
+  if (!account || await passwordHash(password,account.salt) !== account.password_hash) throw new Error('Incorrect email or password.');
+  sessionStorage.setItem(MOCK_SESSION_KEY,String(account.id));
+  return getUser(account.id);
+}
+
+export async function register({display_name,email,password}) {
+  if (API_MODE !== 'mock') return request('/auth/register',jsonRequest('POST',{display_name,email,password}));
+  const accounts = mockAccounts();
+  email = email.trim().toLowerCase();
+  if (accounts.some(account => account.email === email)) throw new Error('An account with this email already exists.');
+  const id = Math.max(...mockUsers.map(user => user.id),...accounts.map(user => user.id)) + 1;
+  const salt = crypto.randomUUID();
+  const user = {id,display_name,email,salt,password_hash:await passwordHash(password,salt),avatar_url:null,joined_at:new Date().toISOString()};
+  localStorage.setItem(accountsKey,JSON.stringify([...accounts.filter(account => ![1,2].includes(account.id)),user]));
+  return getUser(id);
+}
+
+// IndexedDB keeps up to five 5 MB images per listing without localStorage's small quota.
+let mockDatabase;
+function itemStore(method,value) {
+  mockDatabase ||= new Promise((resolve,reject) => {
+    const open = indexedDB.open('neu-marketplace-demo',1);
+    open.onupgradeneeded = () => open.result.createObjectStore('items',{keyPath:'id'});
+    open.onsuccess = () => resolve(open.result);
+    open.onerror = () => reject(new Error('Unable to open demo storage. Please allow browser storage and reload.'));
+  });
+  return mockDatabase.then(database => new Promise((resolve,reject) => {
+    const transaction = database.transaction('items',method === 'getAll' ? 'readonly' : 'readwrite');
+    const operation = transaction.objectStore('items')[method](...(value === undefined ? [] : [value]));
+    transaction.oncomplete = () => resolve(operation.result);
+    transaction.onabort = () => reject(new Error('Unable to save demo data. Check available browser storage and try again.'));
+  }));
+}
+async function allMockItems() {
+  return [...new Map([...mockItems,...await itemStore('getAll')].map(item => [item.id,item])).values()];
+}
+
+async function requireUser() {
+  const user = await getCurrentUser();
+  if (!user) {
+    const error = new Error('Please log in to continue.');
+    error.status = 401;
+    throw error;
+  }
+  return user;
+}
+
+export async function uploadImage(file) {
+  if (!['image/jpeg','image/png','image/webp'].includes(file.type) || !file.size || file.size > 5 * 1024 * 1024) throw new Error('Choose JPEG, PNG or WebP images, up to 5 MB each.');
+  if (API_MODE !== 'mock') {
+    const body = new FormData();
+    body.append('file',file);
+    return (await request('/uploads',{method:'POST',body})).image_url;
+  }
+  await requireUser();
+  return new Promise((resolve,reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Unable to read this image. Please select it again.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function listingValues(values) {
+  const data = Object.fromEntries(['title','category','price','condition','description','location','image_urls'].map(key => [key,values[key]]));
+  if (!data.title?.trim() || !data.description?.trim() || !data.location?.trim() ||
+      !['textbooks','uniforms','study_tools','student_items','other'].includes(data.category) ||
+      !['new','good','fair'].includes(data.condition) || !Number.isSafeInteger(data.price) || data.price < 0 ||
+      !Array.isArray(data.image_urls) || data.image_urls.length < 1 || data.image_urls.length > 5) throw new Error('Please complete all listing fields and include 1–5 images.');
+  return data;
+}
+export async function createItem(values) {
+  const data = listingValues(values);
+  if (API_MODE !== 'mock') return request('/items',jsonRequest('POST',data));
+  const user = await requireUser();
+  const item = {...data,id:Math.max(0,...(await allMockItems()).map(entry => entry.id)) + 1,seller_id:user.id,status:'available',created_at:new Date().toISOString()};
+  await itemStore('put',item);
+  return item;
+}
+export async function updateItem(id,values) {
+  const data = listingValues(values);
+  if (API_MODE !== 'mock') return request(`/items/${Number(id)}`,jsonRequest('PATCH',data));
+  const user = await requireUser();
+  const item = await getItem(id);
+  if (item.seller_id !== user.id) throw new Error('You can only edit your own listings.');
+  const updated = {...item,...data};
+  await itemStore('put',updated);
+  return updated;
 }

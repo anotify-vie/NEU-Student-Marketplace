@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Log In | NEU Student Marketplace</title>
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/forms.css">
+  </head>
+  <body data-page="login" data-root="..">
+    <header class="site-header" id="site-header"></header>
+    <main class="site-main auth-main">
+      <section class="auth-card" aria-labelledby="form-title">
+        <div class="auth-art" role="img" aria-label="A sunny university campus">
+          <div>
+            <p class="section-kicker">Your campus. Your community.</p>
+            <h2>Good finds.<br>New beginnings.</h2>
+            <p>Give your student essentials a second life.</p>
+          </div>
+        </div>
+        <div class="auth-content">
+          <a class="auth-brand" href="../index.html">NEU Student Marketplace</a>
+          <h1 id="form-title">Log In</h1>
+          <p class="form-intro">Welcome back! Find your next campus favorite.</p>
+          <form id="page-form" novalidate>
+            <div class="form-field">
+              <label for="email">Student Email</label>
+              <input id="email" name="email" type="email" required autocomplete="email" maxlength="254" placeholder="e.g. student@example.com">
+              <small id="email-error" class="field-error" role="alert"></small>
+            </div>
+            <div class="form-field">
+              <label for="password">Password</label>
+              <div class="password-input">
+                <input id="password" name="password" type="password" required autocomplete="current-password">
+                <button type="button" class="password-toggle" aria-controls="password" aria-label="Show password" aria-pressed="false">Show</button>
+              </div>
+              <small id="password-error" class="field-error" role="alert"></small>
+            </div>
+            <p id="form-message" class="form-message" role="status" tabindex="-1"></p>
+            <button class="button button-primary submit-button" type="submit">Log In</button>
+          </form>
+          <p class="auth-switch">Don’t have an account? <a id="auth-switch" href="register.html">Sign Up</a>
+          </p>
+          <aside class="demo-note">
+            <strong>Try the demo</strong>
+            <p>Seller: seller@example.com<br>Buyer: buyer@example.com<br>Password: MarketplaceDemo1!</p>
+            <small>Demo accounts work in this browser only.</small>
+          </aside>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer" id="site-footer"></footer>
+    <script type="module" src="../js/forms.js"></script>
+  </body>
+</html>
