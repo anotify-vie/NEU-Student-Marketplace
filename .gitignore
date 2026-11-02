@@ -7,8 +7,10 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Backend local data (never commit the database)
+# Backend local data (never commit the database or user uploads)
 backend/*.db
+backend/uploads/*
+!backend/uploads/.gitkeep
 
 # Environment
 .env

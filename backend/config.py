@@ -10,6 +10,9 @@ def _env(name: str, default: str) -> str:
 
 DATABASE_PATH = _env("MARKETPLACE_DB_PATH", str(BACKEND_DIR / "marketplace.db"))
 
+UPLOADS_DIR = Path(_env("MARKETPLACE_UPLOADS_DIR", str(BACKEND_DIR / "uploads")))
+MAX_UPLOAD_BYTES = int(_env("MAX_UPLOAD_BYTES", str(5 * 1024 * 1024)))
+
 CORS_ORIGINS = [
     origin.strip()
     for origin in _env(
