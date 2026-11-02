@@ -37,6 +37,35 @@ def test_register_short_password_rejected(client):
     assert response.json()["detail"] == "Use at least 8 characters."
 
 
+def test_register_long_password_rejected(client):
+    response = register(client, password="x" * 73)
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Use at most 72 bytes for your password."
+
+
+def test_register_multibyte_password_over_72_bytes_rejected(client):
+    response = register(client, password="á" * 37)  # 74 UTF-8 bytes
+    assert response.status_code == 400
+
+
+def test_register_whitespace_only_name_rejected(client):
+    assert register(client, display_name="   ").status_code == 422
+    assert register(client, display_name=" A ").status_code == 422
+
+
+def test_register_rejects_email_with_spaces(client):
+    response = register(client, email="bad address@example.com")
+    assert response.status_code == 422
+
+
+def test_login_with_oversized_password_returns_401(client):
+    register(client)
+    response = client.post(
+        "/api/auth/login", json={"email": "student@example.com", "password": "x" * 73}
+    )
+    assert response.status_code == 401
+
+
 def test_register_missing_fields_rejected(client):
     response = client.post("/api/auth/register", json={"email": "a@b.com"})
     assert response.status_code == 422

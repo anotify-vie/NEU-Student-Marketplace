@@ -53,6 +53,12 @@ def test_update_profile_invalid_name_rejected(client, registered_user):
     assert response.status_code == 400
 
 
+def test_update_profile_whitespace_name_rejected(client, registered_user):
+    login(client)
+    response = client.patch("/api/users/me", json={"display_name": "   "})
+    assert response.status_code == 400
+
+
 def test_update_profile_bio_too_long_rejected(client, registered_user):
     login(client)
     response = client.patch("/api/users/me", json={"bio": "x" * 301})

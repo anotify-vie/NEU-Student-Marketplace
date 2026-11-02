@@ -18,6 +18,10 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
         raise HTTPException(status_code=409, detail="An account with this email already exists.")
     if len(payload.password) < 8:
         raise HTTPException(status_code=400, detail="Use at least 8 characters.")
+    if len(payload.password.encode("utf-8")) > 72:
+        raise HTTPException(
+            status_code=400, detail="Use at most 72 bytes for your password."
+        )
     user = User(
         email=payload.email,
         display_name=payload.display_name,
