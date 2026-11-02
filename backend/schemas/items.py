@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, StrictInt, field_validator, model_validator
 
 Category = Literal["textbooks", "uniforms", "study_tools", "student_items", "other"]
 Condition = Literal["new", "good", "fair"]
@@ -12,7 +12,7 @@ Sort = Literal["newest", "price_asc", "price_desc"]
 class ItemCreate(BaseModel):
     title: str = Field(min_length=1, max_length=120)
     category: Category
-    price: int = Field(ge=0, le=999_999_999)
+    price: StrictInt = Field(ge=0, le=999_999_999)
     condition: Condition
     description: str = Field(min_length=1, max_length=2000)
     location: str = Field(min_length=1, max_length=160)
@@ -37,7 +37,7 @@ class ItemCreate(BaseModel):
 class ItemUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=120)
     category: Category | None = None
-    price: int | None = Field(default=None, ge=0, le=999_999_999)
+    price: StrictInt | None = Field(default=None, ge=0, le=999_999_999)
     condition: Condition | None = None
     description: str | None = Field(default=None, min_length=1, max_length=2000)
     location: str | None = Field(default=None, min_length=1, max_length=160)

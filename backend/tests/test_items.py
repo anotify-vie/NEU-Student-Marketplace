@@ -250,6 +250,21 @@ def test_update_item_rejects_null_fields(client, registered_user):
     assert client.get(url).status_code == 200
 
 
+def test_create_item_rejects_non_integer_price(client, registered_user):
+    login(client)
+    url = uploaded_url(client)
+    assert create_item(client, url, price=True).status_code == 422
+    assert create_item(client, url, price="99").status_code == 422
+
+
+def test_update_item_rejects_boolean_price(client, registered_user):
+    login(client)
+    created = create_item(client, uploaded_url(client)).json()
+    response = client.patch(f"/api/items/{created['id']}", json={"price": True})
+    assert response.status_code == 422
+    assert client.get(f"/api/items/{created['id']}").json()["price"] == 45000
+
+
 def test_update_item_releases_replaced_image(client, registered_user):
     login(client)
     old_url = uploaded_url(client)
