@@ -57,3 +57,23 @@ def test_upload_rejects_empty_file(client, registered_user):
     client.post("/api/auth/login", json={"email": "student@example.com", "password": "Secret123"})
     response = upload_image(client, content=b"", content_type="image/png", name="empty.png")
     assert response.status_code == 400
+
+
+def test_upload_rejects_png_header_with_garbage(client, registered_user):
+    client.post("/api/auth/login", json={"email": "student@example.com", "password": "Secret123"})
+    fake = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+    response = upload_image(client, content=fake, content_type="image/png", name="fake.png")
+    assert response.status_code == 400
+
+
+def test_upload_rejects_truncated_image(client, registered_user):
+    client.post("/api/auth/login", json={"email": "student@example.com", "password": "Secret123"})
+    response = upload_image(client, content=PNG[: len(PNG) // 2], content_type="image/png", name="cut.png")
+    assert response.status_code == 400
+
+
+def test_upload_rejects_valid_image_with_mismatched_declared_type(client, registered_user):
+    client.post("/api/auth/login", json={"email": "student@example.com", "password": "Secret123"})
+    response = upload_image(client, content=JPEG, content_type="image/png", name="photo.png")
+    assert response.status_code == 400
+    assert response.json()["detail"] == "The file content does not match its image type."

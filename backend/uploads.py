@@ -1,23 +1,16 @@
 import secrets
 from pathlib import Path
 
+from sqlmodel import Session, select
+
 import config
+from models import ImageUpload, Item
 
 MIME_EXTENSIONS = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
     "image/webp": ".webp",
 }
-
-
-def detect_extension(header: bytes) -> str | None:
-    if header.startswith(b"\xff\xd8\xff"):
-        return ".jpg"
-    if header.startswith(b"\x89PNG\r\n\x1a\n"):
-        return ".png"
-    if header[:4] == b"RIFF" and header[8:12] == b"WEBP":
-        return ".webp"
-    return None
 
 
 def image_path(url: str) -> Path | None:
@@ -32,13 +25,31 @@ def image_path(url: str) -> Path | None:
     return path
 
 
-def save_image(content: bytes, extension: str) -> str:
+def save_image(content: bytes, extension: str, owner_id: int, db: Session) -> str:
     filename = f"{secrets.token_hex(16)}{extension}"
     (config.UPLOADS_DIR / filename).write_bytes(content)
+    db.add(ImageUpload(filename=filename, owner_id=owner_id))
+    db.commit()
     return f"/uploads/{filename}"
 
 
-def remove_image(url: str) -> None:
+def release_image(url: str, owner_id: int, item_id: int, db: Session) -> None:
+    """Delete an upload only when the caller owns it and no other listing uses it.
+
+    Files without an owner record (seed and legacy assets) are never deleted.
+    """
     path = image_path(url)
-    if path and path.is_file():
+    if path is None:
+        return
+    record = db.get(ImageUpload, path.name)
+    if not record or record.owner_id != owner_id:
+        return
+    still_used = any(
+        url in (item.image_urls or [])
+        for item in db.exec(select(Item).where(Item.id != item_id)).all()
+    )
+    if still_used:
+        return
+    if path.is_file():
         path.unlink()
+    db.delete(record)

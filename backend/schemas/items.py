@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 Category = Literal["textbooks", "uniforms", "study_tools", "student_items", "other"]
 Condition = Literal["new", "good", "fair"]
@@ -59,6 +59,15 @@ class ItemUpdate(BaseModel):
         if value is not None and len(set(value)) != len(value):
             raise ValueError("Each image must be unique.")
         return value
+
+    @model_validator(mode="after")
+    def reject_explicit_nulls(self) -> "ItemUpdate":
+        nulls = sorted(name for name in self.model_fields_set if getattr(self, name) is None)
+        if nulls:
+            raise ValueError(
+                f"Omit {', '.join(nulls)} instead of sending null; required fields cannot be cleared."
+            )
+        return self
 
 
 class ItemResponse(BaseModel):

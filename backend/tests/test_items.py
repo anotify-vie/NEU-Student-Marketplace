@@ -1,6 +1,18 @@
-PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
-JPEG = b"\xff\xd8\xff\xe0" + b"\x00" * 64
-WEBP = b"RIFF" + (68).to_bytes(4, "little") + b"WEBP" + b"\x00" * 64
+import io
+
+import config
+from PIL import Image
+
+
+def _image(fmt: str) -> bytes:
+    buffer = io.BytesIO()
+    Image.new("RGB", (8, 8), (30, 120, 200)).save(buffer, fmt)
+    return buffer.getvalue()
+
+
+PNG = _image("PNG")
+JPEG = _image("JPEG")
+WEBP = _image("WEBP")
 
 
 def login(client, email="student@example.com", password="Secret123"):
@@ -187,3 +199,63 @@ def test_my_items_returns_only_own_listings(client, registered_user, second_user
     assert "My Listing" in titles
     assert "Other Listing" not in titles
     assert mine["seller_id"] == registered_user["id"]
+
+
+def test_create_item_rejects_another_users_upload(client, registered_user, second_user):
+    login(client)
+    victim_url = uploaded_url(client)
+    login(client, email=second_user["email"])
+    response = create_item(client, victim_url)
+    assert response.status_code == 403
+    assert client.get(victim_url).status_code == 200
+
+
+def test_delete_item_keeps_image_used_by_another_listing(client, registered_user):
+    login(client)
+    url = uploaded_url(client)
+    first = create_item(client, url, title="First Listing").json()
+    create_item(client, url, title="Second Listing")
+    assert client.delete(f"/api/items/{first['id']}").status_code == 200
+    assert client.get(url).status_code == 200
+    assert client.get("/api/items", params={"q": "Second Listing"}).json()["total"] == 1
+
+
+def test_delete_item_removes_its_own_unused_upload(client, registered_user):
+    login(client)
+    url = uploaded_url(client)
+    created = create_item(client, url).json()
+    assert client.delete(f"/api/items/{created['id']}").status_code == 200
+    assert client.get(url).status_code == 404
+
+
+def test_delete_item_never_removes_untracked_seed_image(client, registered_user):
+    login(client)
+    seed = config.UPLOADS_DIR / "seed-sample.png"
+    seed.write_bytes(PNG)
+    created = create_item(client, "/uploads/seed-sample.png").json()
+    assert client.delete(f"/api/items/{created['id']}").status_code == 200
+    assert seed.is_file()
+
+
+def test_update_item_rejects_null_fields(client, registered_user):
+    login(client)
+    url = uploaded_url(client)
+    created = create_item(client, url).json()
+    for field in ("title", "price", "image_urls"):
+        response = client.patch(f"/api/items/{created['id']}", json={field: None})
+        assert response.status_code == 422, field
+    stored = client.get(f"/api/items/{created['id']}").json()
+    assert stored["title"] == "Microeconomics Textbook"
+    assert stored["image_urls"] == [url]
+    assert client.get(url).status_code == 200
+
+
+def test_update_item_releases_replaced_image(client, registered_user):
+    login(client)
+    old_url = uploaded_url(client)
+    new_url = uploaded_url(client)
+    created = create_item(client, old_url).json()
+    response = client.patch(f"/api/items/{created['id']}", json={"image_urls": [new_url]})
+    assert response.status_code == 200
+    assert client.get(old_url).status_code == 404
+    assert client.get(new_url).status_code == 200

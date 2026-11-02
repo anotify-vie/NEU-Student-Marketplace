@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 import config
 from database import get_session
 from deps import get_current_user
-from models import Item, User
+from models import ImageUpload, Item, User
 from models.user import utcnow
 from schemas.items import (
     ItemCreate,
@@ -15,18 +15,23 @@ from schemas.items import (
     Sort,
     to_item_response,
 )
-from uploads import image_path, remove_image
+from uploads import image_path, release_image
 
 router = APIRouter(tags=["items"])
 
 
-def _validate_image_urls(image_urls: list[str]) -> None:
+def _validate_image_urls(image_urls: list[str], user: User, db: Session) -> None:
     for url in image_urls:
         path = image_path(url)
         if path is None:
             raise HTTPException(
                 status_code=400,
                 detail="Image URLs must be server upload paths like /uploads/example.jpg.",
+            )
+        record = db.get(ImageUpload, path.name)
+        if record and record.owner_id != user.id:
+            raise HTTPException(
+                status_code=403, detail="You can only use images you uploaded."
             )
         if not path.is_file():
             raise HTTPException(
@@ -51,7 +56,7 @@ def create_item(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_session),
 ):
-    _validate_image_urls(payload.image_urls)
+    _validate_image_urls(payload.image_urls, user, db)
     item = Item(seller_id=user.id, status="available", **payload.model_dump())
     db.add(item)
     db.commit()
@@ -132,9 +137,9 @@ def update_item(
     item = _owned_item(item_id, user, db)
     changes = payload.model_dump(exclude_unset=True)
     if "image_urls" in changes:
-        _validate_image_urls(changes["image_urls"])
+        _validate_image_urls(changes["image_urls"], user, db)
         for url in set(item.image_urls or []) - set(changes["image_urls"]):
-            remove_image(url)
+            release_image(url, user.id, item.id, db)
     for field, value in changes.items():
         setattr(item, field, value)
     item.updated_at = utcnow()
@@ -152,7 +157,7 @@ def delete_item(
 ):
     item = _owned_item(item_id, user, db)
     for url in item.image_urls or []:
-        remove_image(url)
+        release_image(url, user.id, item.id, db)
     db.delete(item)
     db.commit()
     return {"detail": "Listing deleted"}
