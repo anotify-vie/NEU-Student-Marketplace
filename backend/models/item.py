@@ -16,8 +16,8 @@ class Item(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     seller_id: int = Field(foreign_key="users.id", index=True)
     title: str = Field(max_length=120)
-    category: str = Field(max_length=30)
-    price: int
+    category: str = Field(max_length=30, index=True)
+    price: int = Field(index=True)
     condition: str = Field(max_length=10)
     description: str = Field(max_length=2000)
     location: str = Field(max_length=160)
