@@ -5,14 +5,18 @@ from sqlmodel import Session, select
 import config
 from database import get_session
 from deps import get_current_user
-from models import ImageUpload, Item, User
+from models import Conversation, ImageUpload, Item, Message, User
 from models.user import utcnow
 from schemas.items import (
+    Category,
+    Condition,
     ItemCreate,
     ItemListResponse,
     ItemResponse,
     ItemUpdate,
     Sort,
+    Status,
+    StatusUpdate,
     to_item_response,
 )
 from uploads import image_path, release_image
@@ -67,11 +71,11 @@ def create_item(
 @router.get("/items", response_model=ItemListResponse)
 def list_items(
     q: str | None = None,
-    category: str | None = None,
+    category: Category | None = None,
     min_price: int | None = Query(default=None, ge=0),
     max_price: int | None = Query(default=None, ge=0),
-    condition: str | None = None,
-    status: str | None = None,
+    condition: Condition | None = None,
+    status: Status | None = None,
     sort: Sort = "newest",
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=12, ge=1, le=50),
@@ -149,6 +153,34 @@ def update_item(
     return to_item_response(item)
 
 
+STATUS_TRANSITIONS = {
+    "available": {"reserved", "sold"},
+    "reserved": {"available", "sold"},
+    "sold": set(),
+}
+
+
+@router.patch("/items/{item_id}/status", response_model=ItemResponse)
+def update_item_status(
+    item_id: int,
+    payload: StatusUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+):
+    item = _owned_item(item_id, user, db)
+    if payload.status not in STATUS_TRANSITIONS[item.status]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A {item.status} listing cannot be changed to {payload.status}.",
+        )
+    item.status = payload.status
+    item.updated_at = utcnow()
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return to_item_response(item)
+
+
 @router.delete("/items/{item_id}")
 def delete_item(
     item_id: int,
@@ -158,6 +190,11 @@ def delete_item(
     item = _owned_item(item_id, user, db)
     for url in item.image_urls or []:
         release_image(url, user.id, item.id, db)
+    # Item ids can be reused by SQLite, so chats must not outlive their listing.
+    for conversation in db.exec(select(Conversation).where(Conversation.item_id == item.id)).all():
+        for message in db.exec(select(Message).where(Message.conversation_id == conversation.id)).all():
+            db.delete(message)
+        db.delete(conversation)
     db.delete(item)
     db.commit()
     return {"detail": "Listing deleted"}

@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 import config
 from database import init_db
-from routers import auth, items, uploads, users
+from routers import auth, conversations, items, uploads, users
 
 
 @asynccontextmanager
@@ -33,6 +33,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(items.router, prefix="/api")
 app.include_router(uploads.router, prefix="/api")
+app.include_router(conversations.router, prefix="/api")
 
 config.UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(config.UPLOADS_DIR)), name="uploads")

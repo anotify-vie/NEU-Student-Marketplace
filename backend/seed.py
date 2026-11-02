@@ -15,7 +15,7 @@ from sqlmodel import Session, select
 
 import config
 from database import engine, init_db
-from models import Item, User
+from models import Conversation, Item, Message, User
 from security import hash_password
 
 DEMO_PASSWORD = "DemoPass123!"
@@ -62,6 +62,13 @@ DEMO_ITEMS = [
      "Practice workbook with completed examples and clean notes.", ["textbook.svg"]),
     (115, "buyer@example.com", 22, "reserved", "Adjustable Study Lamp", "other", 95000, "fair", "NEU - Zone A",
      "Compact lamp with adjustable brightness.", ["lamp.svg"]),
+]
+
+# Sample chat about item 101: (sender email, minutes ago, text)
+DEMO_MESSAGES = [
+    ("buyer@example.com", 30, "Hi, is the Microeconomics textbook still available?"),
+    ("seller@example.com", 20, "Yes, it is. I can meet at NEU - Zone A tomorrow."),
+    ("buyer@example.com", 10, "Great, see you there!"),
 ]
 
 
@@ -119,6 +126,29 @@ def seed() -> None:
             )
             print(f"Created item {item_id}: {title}")
         db.commit()
+
+        if db.exec(select(Conversation).where(Conversation.item_id == 101)).first():
+            print("Skipped demo conversation (already exists)")
+        else:
+            conversation = Conversation(
+                item_id=101,
+                buyer_id=emails["buyer@example.com"],
+                seller_id=emails["seller@example.com"],
+                updated_at=now - timedelta(minutes=DEMO_MESSAGES[-1][1]),
+            )
+            db.add(conversation)
+            db.commit()
+            for sender, minutes_ago, text in DEMO_MESSAGES:
+                db.add(
+                    Message(
+                        conversation_id=conversation.id,
+                        sender_id=emails[sender],
+                        text=text,
+                        created_at=now - timedelta(minutes=minutes_ago),
+                    )
+                )
+            db.commit()
+            print("Created demo conversation for item 101")
     print(f"Done. Demo password for all demo accounts: {DEMO_PASSWORD}")
 
 

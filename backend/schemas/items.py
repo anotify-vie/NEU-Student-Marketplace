@@ -70,6 +70,10 @@ class ItemUpdate(BaseModel):
         return self
 
 
+class StatusUpdate(BaseModel):
+    status: Status
+
+
 class ItemResponse(BaseModel):
     id: int
     seller_id: int
