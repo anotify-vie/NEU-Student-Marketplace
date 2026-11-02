@@ -1,28 +1,25 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class RegisterRequest(BaseModel):
     display_name: str = Field(min_length=2, max_length=80)
-    email: str = Field(max_length=254)
+    email: EmailStr
     password: str = Field(min_length=1, max_length=128)
 
-    @field_validator("email")
+    @field_validator("email", mode="before")
     @classmethod
-    def validate_email(cls, value: str) -> str:
-        value = value.strip().lower()
-        if len(value) > 254 or value.count("@") != 1:
-            raise ValueError("Enter a valid email address.")
-        local, domain = value.split("@")
-        if not local or "." not in domain or domain.startswith(".") or domain.endswith("."):
-            raise ValueError("Enter a valid email address.")
-        return value
+    def normalize_email(cls, value):
+        return value.strip().lower() if isinstance(value, str) else value
 
     @field_validator("display_name")
     @classmethod
     def strip_name(cls, value: str) -> str:
-        return value.strip()
+        name = value.strip()
+        if len(name) < 2 or len(name) > 80:
+            raise ValueError("Enter a name between 2 and 80 characters.")
+        return name
 
 
 class LoginRequest(BaseModel):
