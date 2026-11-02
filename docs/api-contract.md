@@ -23,7 +23,12 @@
     "status": "available", "image_urls": ["/uploads/example.jpg"],
     "created_at": "2026-10-31T09:00:00+07:00"
   },
-  "Conversation": {"id": 10, "item_id": 101, "buyer_id": 2, "seller_id": 1, "updated_at": "2026-10-31T10:00:00+07:00"},
+  "Conversation": {
+    "id": 10, "item_id": 101, "buyer_id": 2, "seller_id": 1, "updated_at": "2026-10-31T10:00:00+07:00",
+    "other_user": {"id": 1, "display_name": "Minh Anh Nguyen", "avatar_url": null, "faculty": "Faculty of Economics", "cohort": "K64", "bio": "Economics student at NEU.", "campus": "NEU Main Campus", "joined_at": "2026-10-31T09:00:00+07:00"},
+    "item": {"id": 101, "seller_id": 1, "title": "Microeconomics Textbook", "category": "textbooks", "price": 45000, "condition": "good", "description": "Used but in good condition", "location": "NEU - Zone A", "status": "available", "image_urls": ["/uploads/example.jpg"], "created_at": "2026-10-31T09:00:00+07:00"},
+    "last_message": {"id": 500, "conversation_id": 10, "sender_id": 2, "text": "Is the textbook still available?", "created_at": "2026-10-31T10:00:00+07:00"}
+  },
   "Message": {"id": 500, "conversation_id": 10, "sender_id": 2, "text": "Is the textbook still available?", "created_at": "2026-10-31T10:00:00+07:00"}
 }
 ```
@@ -32,7 +37,7 @@
 - `condition`: `new`, `good`, `fair`.
 - `status`: `available`, `reserved`, `sold`.
 - Image URLs may be relative paths; `api.js` converts them to backend absolute URLs when needed.
-- `GET /api/conversations` and `POST /api/conversations` return each Conversation with three extra fields: `other_user` (the other participant's public profile, never `email`), `item` (the Item) and `last_message` (the latest Message, or `null` before the first message).
+- `GET /api/conversations` and `POST /api/conversations` return the Conversation shape above. `other_user` is the other participant's public profile (never `email`), `item` is the Item and `last_message` is the latest Message, or `null` before the first message. Conversations are sorted by `updated_at`, newest first.
 - Profile updates (`PATCH /api/users/me`) accept optional `display_name` (2–80 chars), `faculty` (2–80 chars), `cohort` (e.g. `K64`) and `bio` (≤300 chars); omitted fields stay unchanged.
 
 ## Endpoints and owners

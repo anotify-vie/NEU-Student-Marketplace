@@ -32,6 +32,7 @@ def _conversation_response(conversation: Conversation, user: User, db: Session) 
         select(Message)
         .where(Message.conversation_id == conversation.id)
         .order_by(Message.id.desc())
+        .limit(1)
     ).first()
     return ConversationResponse(
         id=conversation.id,
