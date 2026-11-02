@@ -1,1 +1,14 @@
 .DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Backend local data (never commit the database)
+backend/*.db
+
+# Environment
+.env
