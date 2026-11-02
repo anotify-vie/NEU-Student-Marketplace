@@ -3,9 +3,9 @@
 ## Member
 
 - **Trần Tuấn Anh** - 11247264
-- Vũ Quốc Huy
-- Nguyễn Tuấn Anh
-- Mai Huy Đăng
+- Vũ Quốc Huy - 11247301
+- Nguyễn Tuấn Anh - 11247264
+- Mai Huy Đăng - 11247269
 
 ## Function
 
