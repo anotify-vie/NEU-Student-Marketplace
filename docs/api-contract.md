@@ -32,6 +32,7 @@
 - `condition`: `new`, `good`, `fair`.
 - `status`: `available`, `reserved`, `sold`.
 - Image URLs may be relative paths; `api.js` converts them to backend absolute URLs when needed.
+- `GET /api/conversations` and `POST /api/conversations` return each Conversation with three extra fields: `other_user` (the other participant's public profile, never `email`), `item` (the Item) and `last_message` (the latest Message, or `null` before the first message).
 - Profile updates (`PATCH /api/users/me`) accept optional `display_name` (2–80 chars), `faculty` (2–80 chars), `cohort` (e.g. `K64`) and `bio` (≤300 chars); omitted fields stay unchanged.
 
 ## Endpoints and owners
