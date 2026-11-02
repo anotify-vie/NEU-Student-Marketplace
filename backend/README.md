@@ -90,8 +90,8 @@ Never commit `.env` or real secrets. Uploaded images and the SQLite database are
 | DELETE | `/api/items/{item_id}` | session cookie (owner only) |
 | GET | `/api/me/items` | session cookie |
 | POST | `/api/uploads` | session cookie (JPEG/PNG/WebP, max 5 MB, max 5 images per listing) |
-| GET | `/api/conversations` | session cookie (own conversations, most recent first) |
-| POST | `/api/conversations` | session cookie (`{item_id}`; reuses an existing conversation; no chat on own or sold listings) |
+| GET | `/api/conversations` | session cookie (own conversations, most recent first; each includes `other_user`, `item` and `last_message`) |
+| POST | `/api/conversations` | session cookie (`{item_id}`; reuses an existing conversation; no chat on own or sold listings; same response shape as the list) |
 | GET | `/api/conversations/{id}/messages` | session cookie (participants only; `?after_id=` for polling, default latest 50) |
 | POST | `/api/conversations/{id}/messages` | session cookie (participants only; `{text}` 1–1000 chars) |
 

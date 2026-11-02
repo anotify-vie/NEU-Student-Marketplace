@@ -49,6 +49,15 @@ def test_search_without_matches_returns_empty_collection(client, listings):
     assert body == {"items": [], "total": 0, "page": 1, "page_size": 12}
 
 
+def test_wildcard_characters_in_keyword_match_literally(client, listings):
+    url = listings[0]["image_urls"][0]
+    create_item(client, url, title="100% Cotton Tee")
+    create_item(client, url, title="Notes_Pack")
+    assert titles(client, q="%") == ["100% Cotton Tee"]
+    assert titles(client, q="_") == ["Notes_Pack"]
+    assert titles(client, q="100%") == ["100% Cotton Tee"]
+
+
 def test_filter_by_category(client, listings):
     assert set(titles(client, category="textbooks")) == {"Microeconomics Textbook", "Marketing Textbook"}
 

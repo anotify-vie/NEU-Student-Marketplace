@@ -1,7 +1,9 @@
 import time
+from datetime import datetime
 
 import pytest
 
+from schemas.chat import MessageResponse
 from tests.test_items import create_item, login, uploaded_url
 
 
@@ -170,3 +172,31 @@ def test_deleting_a_listing_deletes_its_conversations(client, item, conversation
     as_buyer(client)
     assert client.get("/api/conversations").json() == []
     assert client.get(f"/api/conversations/{conversation['id']}/messages").status_code == 404
+
+
+def test_conversation_list_includes_other_user_item_and_last_message(
+    client, item, conversation, registered_user, second_user
+):
+    assert conversation["last_message"] is None
+    send(client, conversation["id"], "First")
+    send(client, conversation["id"], "Latest question")
+    buyer_view = client.get("/api/conversations").json()[0]
+    assert buyer_view["other_user"]["id"] == registered_user["id"]
+    assert buyer_view["other_user"]["display_name"] == "Test Student"
+    assert "email" not in buyer_view["other_user"]
+    assert buyer_view["item"]["id"] == item["id"]
+    assert buyer_view["item"]["title"] == item["title"]
+    assert buyer_view["last_message"]["text"] == "Latest question"
+    assert buyer_view["last_message"]["sender_id"] == second_user["id"]
+    login(client)
+    seller_view = client.get("/api/conversations").json()[0]
+    assert seller_view["other_user"]["id"] == second_user["id"]
+    assert seller_view["last_message"]["created_at"] == buyer_view["last_message"]["created_at"]
+
+
+def test_chat_timestamps_are_always_utc():
+    # Older SQLModel versions hand back naive datetimes; browsers would read them as local time.
+    message = MessageResponse(
+        id=1, conversation_id=1, sender_id=1, text="Hi", created_at=datetime(2026, 1, 1, 3, 0)
+    )
+    assert message.model_dump(mode="json")["created_at"] == "2026-01-01T03:00:00Z"

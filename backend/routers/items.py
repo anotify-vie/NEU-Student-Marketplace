@@ -83,9 +83,10 @@ def list_items(
 ):
     filters = []
     if q and q.strip():
-        pattern = f"%{q.strip().lower()}%"
+        term = q.strip().lower()
         filters.append(
-            func.lower(Item.title).like(pattern) | func.lower(Item.description).like(pattern)
+            func.lower(Item.title).contains(term, autoescape=True)
+            | func.lower(Item.description).contains(term, autoescape=True)
         )
     if category:
         filters.append(Item.category == category)
