@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const chrome = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const base = process.env.FRONTEND_URL || 'http://127.0.0.1:5500';
-const screenshots = path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../docs/screenshots/fe1-02');
+const screenshots = process.env.SCREENSHOTS_DIR || path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../docs/screenshots/fe1-02');
 const profile = await mkdtemp(path.join(tmpdir(),'neu-fe1-02-chrome-'));
 const browser = spawn(chrome,['--headless','--disable-gpu','--no-sandbox','--disable-extensions','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
 let ws;
@@ -71,6 +71,7 @@ try {
   const {targetId} = await command('Target.createTarget',{url:'about:blank'});
   const {sessionId} = await command('Target.attachToTarget',{targetId,flatten:true});
   await command('Page.enable',{},sessionId);
+  await command('Page.addScriptToEvaluateOnNewDocument',{source: "localStorage.setItem('neu-marketplace-api-mode','mock')"},sessionId);
   await command('Runtime.enable',{},sessionId);
   await mkdir(screenshots,{recursive:true});
 

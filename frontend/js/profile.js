@@ -12,6 +12,7 @@ const editPanel = document.getElementById('edit-panel');
 const form = document.getElementById('profile-form');
 const profileMessage = document.getElementById('profile-message');
 let user;
+let stats;
 
 function showError(message) {
   statusElement.textContent = '';
@@ -77,7 +78,7 @@ function validate(values) {
   const errors = {};
   if (values.display_name.length < 2 || values.display_name.length > 80) errors.name = 'Enter a name between 2 and 80 characters.';
   if (values.faculty.length < 2 || values.faculty.length > 80) errors.faculty = 'Enter your faculty.';
-  if (!/^K\d{2,3}$/i.test(values.cohort)) errors.cohort = 'Use a cohort such as K64.';
+  if (values.cohort && !/^K\d{2,3}$/i.test(values.cohort)) errors.cohort = 'Use a cohort such as K64.';
   if (values.bio.length > 300) errors.bio = 'Keep your introduction under 300 characters.';
   clearErrors();
   Object.entries(errors).forEach(([key,message]) => {
@@ -112,7 +113,7 @@ async function init() {
       profileId = currentUser?.id || 1; // Guests preview the public demo profile.
     }
     user = await getUser(profileId);
-    const stats = await getUserStats(user.id);
+    stats = await getUserStats(user.id);
     renderProfile(user,stats);
     if (API_MODE === 'mock' && !currentUser) currentUser = await getCurrentUser();
     const isOwner = currentUser?.id === user.id;
@@ -138,13 +139,17 @@ form.addEventListener('submit',async event => {
   };
   if (!validate(values)) return;
   const saveButton = form.querySelector('[type="submit"]');
+  if (saveButton.disabled) return;
   saveButton.disabled = true;
+  profileMessage.textContent = '';
+  profileMessage.classList.remove('is-error');
   try {
     user = await updateProfile(user.id,values);
-    renderProfile(user,await getUserStats(user.id));
+    renderProfile(user,stats);
     closeEditor();
-    profileMessage.textContent = 'Profile updated in this browser.';
+    profileMessage.textContent = API_MODE === 'mock' ? 'Profile updated in this browser.' : 'Profile updated successfully.';
   } catch(error) {
+    profileMessage.classList.add('is-error');
     profileMessage.textContent = error.message || 'Unable to save your profile. Please try again.';
   } finally {
     saveButton.disabled = false;

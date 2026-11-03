@@ -1,4 +1,4 @@
-import { getCurrentUser, logout } from './api.js';
+import { API_BASE_URL, getCurrentUser, logout } from './api.js';
 
 const root = document.body.dataset.root || '.';
 const page = document.body.dataset.page || '';
@@ -81,7 +81,7 @@ export function formatPrice(value) { return `${new Intl.NumberFormat('en-US').fo
 export function resolveAssetUrl(raw) {
   if (!raw) return new URL('../assets/placeholder.svg', import.meta.url).href;
   if (/^(https?:|data:|blob:)/.test(raw)) return raw;
-  if (raw.startsWith('/uploads/')) return `http://127.0.0.1:8000${raw}`;
+  if (raw.startsWith('/uploads/')) return new URL(raw,API_BASE_URL).href;
   return new URL(`../${raw.replace(/^\//,'')}`, import.meta.url).href;
 }
 export function productImageUrl(item) { return resolveAssetUrl(item.image_urls?.[0]); }

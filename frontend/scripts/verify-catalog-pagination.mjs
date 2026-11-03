@@ -32,7 +32,9 @@ try{
  ws.addEventListener('message',event=>{const msg=JSON.parse(event.data);if(msg.id&&pending.has(msg.id)){const p=pending.get(msg.id);pending.delete(msg.id);msg.error?p.reject(Error(msg.error.message)):p.resolve(msg.result);}});
  const {targetId}=await command('Target.createTarget',{url:'about:blank'});
  const {sessionId}=await command('Target.attachToTarget',{targetId,flatten:true});
- await command('Page.enable',{},sessionId);await command('Runtime.enable',{},sessionId);
+ await command('Page.enable',{},sessionId);
+ await command('Page.addScriptToEvaluateOnNewDocument',{source: "localStorage.setItem('neu-marketplace-api-mode','mock')"},sessionId);
+ await command('Runtime.enable',{},sessionId);
  for(const page of ['/pages/browse.html','/pages/search.html?q=test']){
   await command('Page.navigate',{url:`http://127.0.0.1:${port}${page}`},sessionId);
   await until(`document.querySelectorAll('.product-card').length===50 && !document.getElementById('load-more').hidden`,sessionId);

@@ -8,7 +8,7 @@ import { mockItems } from '../js/mock-data.js';
 import { mockUsers } from '../js/mock-users.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const screenshots = path.resolve(root,'../docs/screenshots/fe2-02');
+const screenshots = process.env.SCREENSHOTS_DIR || path.resolve(root,'../docs/screenshots/fe2-02');
 const chrome = process.env.CHROME_PATH || (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : process.platform === 'win32' ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' : 'google-chrome');
 const profile = await mkdtemp(path.join(tmpdir(),'neu-fe2-02-'));
 const requests = [], errors = [], pending = new Map();
@@ -29,7 +29,10 @@ const server = createServer(async (request,response) => {
       if (url.pathname===failRoute && (!failMethod || failMethod===request.method)) { failRoute=''; failMethod=''; return json(response,503,{detail:'Service unavailable. Please try again.'}); }
       if (url.pathname==='/api/auth/me') return json(response,request.headers.cookie?200:401,{id:2,display_name:'Ha Linh Tran'});
       if (url.pathname==='/api/auth/logout') { response.setHeader('Set-Cookie','neu_test_session=; Max-Age=0; Path=/'); response.writeHead(204); return response.end(); }
-      if (url.pathname==='/api/conversations') return json(response,200,realConversations);
+      if (url.pathname==='/api/conversations') return json(response,200,realConversations.map(entry => ({...entry,
+        other_user:mockUsers.find(user=>user.id===(entry.buyer_id===2?entry.seller_id:entry.buyer_id)),
+        item:realItems.get(entry.item_id),last_message:realMessages.filter(message=>message.conversation_id===entry.id).at(-1)||null,
+      })));
       if (url.pathname==='/api/me/items') return json(response,200,[...realItems.values()].filter(item=>item.seller_id===2));
       const messageRoute=url.pathname.match(/^\/api\/conversations\/(\d+)\/messages$/);
       if (messageRoute) {
@@ -54,7 +57,7 @@ const server = createServer(async (request,response) => {
     const file=path.resolve(root,`.${decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname)}`);
     if(!file.startsWith(root+path.sep)) {response.writeHead(403);return response.end();}
     let data=await readFile(file);
-    if(realMode && file.endsWith('/js/api.js')) data=Buffer.from(data.toString().replace("API_MODE = 'mock'","API_MODE = 'real'").replace('http://127.0.0.1:8000/api',`${base}/api`));
+    if(file.endsWith('/js/api.js')) data=Buffer.from(data.toString().replace(/^export const API_MODE = .*;$/m,`export const API_MODE = '${realMode ? 'real' : 'mock'}';`).replace(/^export const API_BASE_URL = .*;$/m,`export const API_BASE_URL = '${base}/api';`));
     response.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream'});response.end(data);
   } catch {response.writeHead(404);response.end('Not found');}
 });

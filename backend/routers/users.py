@@ -1,11 +1,12 @@
 import re
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from database import get_session
 from deps import get_current_user
-from models import User
+from models import Item, User
 from schemas import ProfileUpdateRequest, PublicUserResponse, to_public_user_response, to_user_response
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -51,3 +52,16 @@ def get_public_profile(user_id: int, db: Session = Depends(get_session)):
     if not user:
         raise HTTPException(status_code=404, detail="This profile could not be found.")
     return to_public_user_response(user)
+
+
+@router.get("/{user_id}/stats", response_model=dict[str, int])
+def get_public_stats(user_id: int, db: Session = Depends(get_session)):
+    if not db.get(User, user_id):
+        raise HTTPException(status_code=404, detail="This profile could not be found.")
+    counts = dict(db.exec(
+        select(Item.status, func.count()).where(Item.seller_id == user_id).group_by(Item.status)
+    ).all())
+    return {
+        "total": sum(counts.values()),
+        **{status: counts.get(status, 0) for status in ("available", "reserved", "sold")},
+    }

@@ -126,6 +126,7 @@ async function refresh() {
     const entries = await getConversations();
     const hydrated = await Promise.all(entries.map(async entry => {
       const previous = cards.get(entry.id);
+      if (API_MODE === 'real') return {...entry,person:entry.other_user,last:entry.last_message};
       if (previous?.updated_at === entry.updated_at) return previous;
       const person = previous?.person || await getUser(entry.buyer_id === user.id ? entry.seller_id : entry.buyer_id);
       const item = previous?.item || await product(entry.item_id);
