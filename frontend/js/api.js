@@ -1,10 +1,14 @@
 import { mockItems } from './mock-data.js';
 import { mockUsers } from './mock-users.js';
 
-// FE2 can keep this public interface and add the remaining auth/write methods.
-// Change to 'real' after the backend is available and the contract is approved.
-export const API_MODE = 'mock';
-export const API_BASE_URL = 'http://127.0.0.1:8000/api';
+// Real API by default. Set this storage key to 'mock' and reload for an isolated demo.
+function configuredMode() {
+  try { return localStorage.getItem('neu-marketplace-api-mode') === 'mock' ? 'mock' : 'real'; }
+  catch { return 'real'; }
+}
+export const API_MODE = configuredMode();
+// Use the same hostname as the frontend so SameSite cookies work on localhost too.
+export const API_BASE_URL = `http://${location.hostname}:8000/api`;
 export const MOCK_SESSION_KEY = 'neu-marketplace-demo-user-id';
 export const MOCK_CONVERSATIONS_KEY = 'neu-marketplace-demo-conversations-v1';
 let memoryConversations = [];
@@ -51,13 +55,11 @@ function searchMockItems(query, catalogue) {
   return {items:items.slice((page-1)*pageSize,page*pageSize),total:items.length,page,page_size:pageSize};
 }
 
-export async function getItems(query = {}) {
+export async function getItems(query = {},options = {}) {
   if (API_MODE === 'mock') return searchMockItems(query, await allMockItems());
   const parameters = new URLSearchParams();
   Object.entries(query).forEach(([key,value]) => { if (value !== '' && value !== null && value !== undefined) parameters.set(key,String(value)); });
-  const response = await fetch(`${API_BASE_URL}/items?${parameters}`, {credentials:'include'});
-  if (!response.ok) throw new Error('Unable to load listings. Please try again.');
-  return response.json();
+  return request(`/items?${parameters}`,options);
 }
 
 export async function getItem(id) {
@@ -68,10 +70,7 @@ export async function getItem(id) {
     if (!item) throw new Error('This listing could not be found.');
     return {...item,image_urls:[...item.image_urls]};
   }
-  const response = await fetch(`${API_BASE_URL}/items/${itemId}`, {credentials:'include'});
-  if (response.status === 404) throw new Error('This listing could not be found.');
-  if (!response.ok) throw new Error('Unable to load this listing. Please try again.');
-  return response.json();
+  return request(`/items/${itemId}`);
 }
 
 function storedMockProfile(id) {
@@ -91,14 +90,11 @@ export async function getUser(id) {
     const {email, password_hash, salt, ...publicUser} = user;
     return {...publicUser,...storedMockProfile(userId)};
   }
-  const response = await fetch(`${API_BASE_URL}/users/${userId}`, {credentials:'include'});
-  if (response.status === 404) throw new Error('This profile could not be found.');
-  if (!response.ok) throw new Error('Unable to load this profile. Please try again.');
-  return response.json();
+  return request(`/users/${userId}`);
 }
 
 export async function getUserStats(id) {
-  if (API_MODE !== 'mock') return null; // A public statistics endpoint is not defined in API v1.
+  if (API_MODE !== 'mock') return request(`/users/${Number(id)}/stats`);
   const items = (await allMockItems()).filter(item => item.seller_id === Number(id));
   return {total:items.length,available:items.filter(item => item.status === 'available').length,reserved:items.filter(item => item.status === 'reserved').length,sold:items.filter(item => item.status === 'sold').length};
 }
@@ -122,10 +118,8 @@ export async function getCurrentUser() {
     }
     catch { return null; }
   }
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {credentials:'include'});
-  if (response.status === 401) return null;
-  if (!response.ok) throw new Error('Unable to check your account. Please try again.');
-  return response.json();
+  try { return await request('/auth/me'); }
+  catch(error) { if (error.status === 401) return null; throw error; }
 }
 
 export async function openConversation(itemId) {
@@ -143,9 +137,7 @@ export async function openConversation(itemId) {
     saveMockConversations([...conversations,conversation]);
     return {...conversation};
   }
-  const response = await fetch(`${API_BASE_URL}/conversations`, {method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({item_id:Number(itemId)})});
-  if (!response.ok) throw new Error('Unable to open the conversation. Please try again.');
-  return response.json();
+  return request('/conversations',jsonRequest('POST',{item_id:Number(itemId)}));
 }
 
 export async function getConversations() {
@@ -173,10 +165,17 @@ async function passwordHash(password,salt) {
 async function request(route,options = {}) {
   let response;
   try { response = await fetch(`${API_BASE_URL}${route}`,{credentials:'include',...options}); }
-  catch { throw new Error('Unable to reach the server. Please try again.'); }
+  catch(error) {
+    if (error.name === 'AbortError') throw error;
+    throw new Error('Unable to reach the server. Please try again.');
+  }
   const body = await response.json().catch(() => null);
   if (!response.ok) {
-    const error = new Error(typeof body?.detail === 'string' ? body.detail : 'The request failed. Please check your input and try again.');
+    const detail = body?.detail;
+    const message = typeof detail === 'string' ? detail : Array.isArray(detail)
+      ? detail.map(entry => `${entry.loc?.slice(1).join('.') || 'Input'}: ${entry.msg}`).join(' ')
+      : 'The request failed. Please check your input and try again.';
+    const error = new Error(message);
     error.status = response.status;
     throw error;
   }

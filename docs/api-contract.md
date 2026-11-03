@@ -39,6 +39,7 @@
 - Image URLs may be relative paths; `api.js` converts them to backend absolute URLs when needed.
 - `GET /api/conversations` and `POST /api/conversations` return the Conversation shape above. `other_user` is the other participant's public profile (never `email`), `item` is the Item and `last_message` is the latest Message, or `null` before the first message. Conversations are sorted by `updated_at`, newest first.
 - Profile updates (`PATCH /api/users/me`) accept optional `display_name` (2–80 chars), `faculty` (2–80 chars), `cohort` (e.g. `K64`) and `bio` (≤300 chars); omitted fields stay unchanged.
+- Integration addition: `GET /api/users/{user_id}/stats` returns public listing counts `{total, available, reserved, sold}` from the same SQLite items shown elsewhere. Counts exclude deleted listings, include zeroes, and return 404 for an unknown user. No private account data is exposed.
 
 ## Endpoints and owners
 
@@ -49,6 +50,7 @@
 | POST | `/api/auth/logout` | Clear session | BE1 |
 | GET | `/api/auth/me` | Current user or 401 | BE1 |
 | GET | `/api/users/{user_id}` | Safe public profile/seller info (never includes `email`) | BE1 |
+| GET | `/api/users/{user_id}/stats` | Public listing counts by status for Profile | BE1 |
 | PATCH | `/api/users/me` | Update own profile `{display_name?,faculty?,cohort?,bio?}`; 401 if unauthenticated | BE1 |
 | GET | `/api/items/{id}` | Item detail and public seller info | BE1 |
 | POST | `/api/items` | Create authenticated item (JSON fields and uploaded image URLs) | BE1 |

@@ -29,6 +29,7 @@ const allowedSorts = new Set(['newest','price_asc','price_desc']);
 let state;
 let requestId = 0;
 let priceTimer;
+let controller;
 
 function readState() {
   const params = new URLSearchParams(window.location.search);
@@ -109,7 +110,7 @@ function validPriceRange() {
   const min = state.min_price === '' ? 0 : Number(state.min_price);
   const max = state.max_price === '' ? Infinity : Number(state.max_price);
   let message = '';
-  if (!Number.isFinite(min) || min < 0 || Number.isNaN(max) || max < 0) message = 'Enter a valid price of 0 VND or more.';
+  if (!Number.isSafeInteger(min) || min < 0 || (state.max_price !== '' && (!Number.isSafeInteger(max) || max < 0))) message = 'Enter a whole VND amount of 0 or more.';
   else if (min > max) message = 'Minimum price cannot exceed maximum price.';
   document.getElementById('price-error').textContent = message;
   return !message;
@@ -128,6 +129,8 @@ async function fetchPage(page, currentRequest) {
   if (loadingPage !== null || loadedPages.has(page)) return;
 
   loadingPage = page;
+  controller = new AbortController();
+  status.textContent = page === 1 ? (isSearch ? 'Searching listings…' : 'Loading listings…') : 'Loading more listings…';
   loadMore.disabled = true;
   loadMore.textContent = 'Loading…';
 
@@ -137,7 +140,7 @@ async function fetchPage(page, currentRequest) {
       status: 'available',
       page,
       page_size: PAGE_SIZE
-    });
+    },{signal:controller.signal});
 
     if (currentRequest !== requestId) return;
 
@@ -172,7 +175,7 @@ async function fetchPage(page, currentRequest) {
     updateLoadMore();
 
   } catch (error) {
-    if (currentRequest !== requestId) return;
+    if (currentRequest !== requestId || error.name === 'AbortError') return;
 
     if (page === 1) {
       grid.replaceChildren();
@@ -213,12 +216,16 @@ async function fetchPage(page, currentRequest) {
 }
 
 async function loadProducts() {
+  clearTimeout(priceTimer);
+  controller?.abort();
   updateHeading();
   const currentRequest = ++requestId;
   loadingPage = null;
   loadedPages = new Set();
   nextPage = 1;
   total = 0;
+  grid.replaceChildren();
+  count.textContent = '';
   loadMore.hidden = true;
   visibleCount.textContent = '';
   if (!validPriceRange()) {

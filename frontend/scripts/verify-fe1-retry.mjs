@@ -39,6 +39,8 @@ const apiServer = createServer((request,response) => {
   } else if (url.pathname === '/api/items/101') {
     if (detailFailures-- > 0) sendJson(response,503,{detail:'Service unavailable'});
     else sendJson(response,200,mockItems.find(item => item.id === 101));
+  } else if (/^\/api\/users\/\d+\/stats$/.test(url.pathname)) {
+    sendJson(response,200,{total:0,available:0,reserved:0,sold:0});
   } else if (url.pathname.startsWith('/api/users/')) {
     const id = Number(url.pathname.split('/').pop());
     if (id === 1 && profileFailures-- > 0) sendJson(response,503,{detail:'Service unavailable'});
@@ -58,8 +60,8 @@ const staticServer = createServer(async (request,response) => {
     let body = await readFile(target);
     if (pathname === '/js/api.js') {
       const original = body.toString();
-      const modified = original.replace("export const API_MODE = 'mock';","export const API_MODE = 'real';")
-        .replace(/export const API_BASE_URL = '[^']+';/,`export const API_BASE_URL = 'http://127.0.0.1:${apiPort}/api';`);
+      const modified = original.replace(/^export const API_MODE = .*;$/m,"export const API_MODE = 'real';")
+        .replace(/^export const API_BASE_URL = .*;$/m,`export const API_BASE_URL = 'http://127.0.0.1:${apiPort}/api';`);
       assert(modified !== original,'Could not enable real API mode in test response.');
       body = Buffer.from(modified);
     }

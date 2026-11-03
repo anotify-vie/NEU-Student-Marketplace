@@ -82,6 +82,7 @@ Never commit `.env` or real secrets. Uploaded images and the SQLite database are
 | GET | `/api/auth/me` | session cookie |
 | PATCH | `/api/users/me` | session cookie |
 | GET | `/api/users/{user_id}` | public (email never exposed) |
+| GET | `/api/users/{user_id}/stats` | public (`total`, `available`, `reserved`, `sold`; 404 for an unknown user) |
 | POST | `/api/items` | session cookie (owner = current user) |
 | GET | `/api/items` | public (`q`, `category`, `min_price`, `max_price`, `condition`, `status`, `sort`, `page`, `page_size`; invalid values return 422) |
 | GET | `/api/items/{item_id}` | public |
