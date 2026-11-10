@@ -108,3 +108,50 @@ Reproduce **all 12 panels of the approved English mockup**, including the full *
 ## Standard AI handoff prompt
 
 > You are team member [FE1/FE2/BE1/BE2] working on NEU Student Marketplace. Read `README.md`, `docs/design.md`, `docs/user-flow.md`, `docs/api-contract.md`, `docs/tasks.md` and view `docs/images/marketplace-mockup.png`. Implement **only** the checklist assigned to your role and respect file ownership, technical requirements and API v1. Frontend must use semantic HTML, CSS and vanilla JavaScript without adding a framework; backend must use Python, FastAPI and SQLite. All user-facing strings and documentation must be in English. Before coding, list files to create/edit, dependencies, endpoints and functions required. After coding, test happy paths and error/empty states, check contract compatibility and provide run instructions and evidence. Do not invent checkout/payment features or replace the approved visual direction.
+
+
+---
+
+## v1.1 change request — Two follow-up GitHub Issues (proposed; do not mark complete until verified)
+
+**Decision gate (before implementation):** FE and BE agree on `docs/api-contract.md` v1.1, including `quantity`, total-price semantics, optional images, image replacement semantics, rounding, legacy-data migration and actual auth validation rules. Obtain team approval and merge the docs PR to `main` first. Do not change previously completed issue checklists retroactively.
+
+### Issue BE — `[BE] Support listing quantities, optional images and proportional pricing`
+
+**Scope / tasks**
+
+- [ ] Verify existing backend account validation and document actual email/display name/password constraints; keep email-only login.
+- [ ] Add `quantity` (integer >= 1, default 1) to Item models, create/edit/read schemas and all embedded item responses. Preserve `price` as total listed VND price.
+- [ ] Implement a safe SQLite migration/backfill for existing rows (`quantity=1`, retain current prices); do not delete or reset data.
+- [ ] Allow `image_urls=[]` or omission on create and optional later image uploads; preserve owner permissions, max five images and upload security.
+- [ ] Keep PATCH partial-update semantics, including complete-list replacement for supplied `image_urls`; omitted fields remain unchanged.
+- [ ] Ensure pricing interpretation/round-half-up rule is documented and consistent; do not introduce a checkout or dedicated pricing endpoint.
+- [ ] Update tests for no-image create, owner adding photos later, invalid quantities, unchanged legacy prices, partial updates, permissions and regression of auth/chat/search.
+
+**BE acceptance:** Create no-image listing succeeds; item responses expose positive quantity; existing data migrates safely; owner adds/removes images without unintended loss; all backend tests pass.
+
+### Issue FE — `[FE] Improve listing forms, quantity pricing and responsive layouts`
+
+**Scope / tasks**
+
+- [ ] Display backend-aligned email/display-name/password hints on login/register; no unsupported username login.
+- [ ] Mark Create/Edit required fields with red `*` plus a textual `* Required fields` legend; mark product images `(Optional)`.
+- [ ] Allow 0–5 images on create and image upload after creation; preserve existing image URLs when appending.
+- [ ] Add integer Quantity (default 1) and **Total Price (VND)** inputs on Create/Edit with validation and clear explanatory text.
+- [ ] Show a no-image placeholder; on Item Detail add available quantity, selector `1..quantity` and round-half-up proportional estimated-price display; do not create cart/payment/inventory logic.
+- [ ] Keep existing price-based Browse/Search filtering/sorting based on total listing price and label appropriately.
+- [ ] Update API adapter and mock data to match the agreed v1.1 item shape; integrate real API once BE is merged.
+- [ ] Audit desktop, tablet and mobile layouts (320, 375, 430, 768, 1366 and 1920 CSS px): nav, grids, forms, gallery, buttons, chat and filters; no overflow or overlapping elements.
+- [ ] Add focused regression checks and desktop/mobile evidence; confirm real API flows including optional photos and quantity price calculations.
+
+**FE acceptance:** Valid no-image create/edit works; required/optional fields clear; calculated prices agree with contract; no broken responsive screens; existing auth, Browse/Search, Detail and Chat continue working.
+
+### Parallel execution and merge order
+
+1. **Docs contract approval → merge docs PR first.** Confirm password validation in actual backend before publishing exact UI hints.
+2. From updated `main`, BE works in `feat/be-listing-quantity-images` while FE works in `feat/fe-listing-responsive-quantity` (mock-first; no guessing API fields).
+3. BE PR receives review, tests and merges to `main`.
+4. FE updates from `main`, completes REAL-mode integration and full-stack/mobile verification, then opens/merges FE PR.
+5. Update `docs/frontend-acceptance.md` and `README.md` with *verified* outcomes after integration.
+
+**Out of scope:** checkout, cart, payments, transactions, automatic stock decrement and new auth methods. Keep the existing tech stack and MVP visuals.
