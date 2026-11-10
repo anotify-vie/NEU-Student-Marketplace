@@ -115,6 +115,7 @@ def seed() -> None:
                     title=title,
                     category=category,
                     price=price,
+                    quantity=1,
                     condition=condition,
                     description=description,
                     location=location,
