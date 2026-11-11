@@ -49,6 +49,18 @@ def test_search_without_matches_returns_empty_collection(client, listings):
     assert body == {"items": [], "total": 0, "page": 1, "page_size": 12}
 
 
+def test_quantity_does_not_change_total_price_filtering_or_sorting(client, registered_user):
+    single = create_item(client, title="Single item", price=100000, quantity=1).json()
+    bulk = create_item(client, title="Bulk listing", price=200000, quantity=10).json()
+    filtered = client.get("/api/items", params={"max_price": 150000}).json()
+    assert filtered["total"] == 1
+    assert filtered["items"][0]["id"] == single["id"]
+    ascending = client.get("/api/items", params={"sort": "price_asc"}).json()["items"]
+    descending = client.get("/api/items", params={"sort": "price_desc"}).json()["items"]
+    assert [item["id"] for item in ascending] == [single["id"], bulk["id"]]
+    assert [item["id"] for item in descending] == [bulk["id"], single["id"]]
+
+
 def test_wildcard_characters_in_keyword_match_literally(client, listings):
     url = listings[0]["image_urls"][0]
     create_item(client, url, title="100% Cotton Tee")

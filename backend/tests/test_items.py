@@ -33,7 +33,7 @@ def uploaded_url(client, content=PNG, content_type="image/png"):
     return response.json()["image_url"]
 
 
-def create_item(client, url, **overrides):
+def create_item(client, url=None, **overrides):
     payload = {
         "title": "Microeconomics Textbook",
         "category": "textbooks",
@@ -41,8 +41,9 @@ def create_item(client, url, **overrides):
         "condition": "good",
         "description": "Clean and well-kept textbook with helpful notes.",
         "location": "NEU - Zone A",
-        "image_urls": [url],
     }
+    if url is not None:
+        payload["image_urls"] = [url]
     payload.update(overrides)
     return client.post("/api/items", json=payload)
 
@@ -94,7 +95,7 @@ def test_create_item_allows_no_images(client, registered_user):
     assert response.json()["image_urls"] == []
 
 
-@pytest.mark.parametrize("quantity", [0, -1, True, "2"])
+@pytest.mark.parametrize("quantity", [0, -1, 1.5, 2.0, True, "2", None])
 def test_create_item_rejects_invalid_quantity(client, registered_user, quantity):
     login(client)
     response = create_item(client, "/uploads/x.jpg", quantity=quantity, image_urls=[])
@@ -304,3 +305,104 @@ def test_update_item_releases_replaced_image(client, registered_user):
     assert response.status_code == 200
     assert client.get(old_url).status_code == 404
     assert client.get(new_url).status_code == 200
+
+
+@pytest.mark.parametrize("quantity", [None, 4], ids=["default", "multiple-units"])
+def test_image_free_item_quantity_is_returned_by_all_item_endpoints(client, registered_user, quantity):
+    overrides = {} if quantity is None else {"quantity": quantity}
+    response = create_item(client, **overrides)
+    assert response.status_code == 201
+    created = response.json()
+    expected = quantity or 1
+    detail = client.get(f"/api/items/{created['id']}").json()
+    public_list = client.get("/api/items").json()["items"][0]
+    own_list = client.get("/api/me/items").json()[0]
+    status = client.patch(f"/api/items/{created['id']}/status", json={"status": "reserved"})
+    assert status.status_code == 200
+    for item in [created, detail, public_list, own_list, status.json()]:
+        assert item["quantity"] == expected
+        assert item["image_urls"] == []
+        assert item["price"] == 45000
+
+
+def test_owner_adds_appends_replaces_and_removes_images_after_image_free_create(client, registered_user):
+    created = create_item(client, quantity=3, price=100000).json()
+    endpoint = f"/api/items/{created['id']}"
+    first = uploaded_url(client)
+    second = uploaded_url(client)
+    for images in [[first], [first, second]]:
+        response = client.patch(endpoint, json={"image_urls": images})
+        assert response.status_code == 200
+        assert response.json()["image_urls"] == images
+        assert response.json()["quantity"] == 3
+        assert response.json()["price"] == 100000
+    response = client.patch(endpoint, json={"description": "Updated description", "price": 120000})
+    assert response.status_code == 200
+    assert response.json()["image_urls"] == [first, second]
+    assert response.json()["quantity"] == 3
+    response = client.patch(endpoint, json={"image_urls": [second]})
+    assert response.status_code == 200
+    assert response.json()["image_urls"] == [second]
+    assert client.get(first).status_code == 404
+    assert client.get(second).status_code == 200
+    response = client.patch(endpoint, json={"image_urls": []})
+    assert response.status_code == 200
+    assert response.json()["image_urls"] == []
+    assert response.json()["quantity"] == 3
+    assert response.json()["price"] == 120000
+    assert client.get(second).status_code == 404
+    assert client.get(endpoint).json()["image_urls"] == []
+
+
+@pytest.mark.parametrize("quantity", [0, -1, 1.5, 2.0, True, "2", None])
+def test_invalid_quantity_patch_does_not_change_existing_item(client, registered_user, quantity):
+    created = create_item(client, uploaded_url(client), quantity=3).json()
+    endpoint = f"/api/items/{created['id']}"
+    response = client.patch(endpoint, json={"quantity": quantity, "price": 100000})
+    assert response.status_code == 422
+    assert client.get(endpoint).json() == created
+
+
+def test_empty_patch_preserves_quantity_price_and_images(client, registered_user):
+    created = create_item(client, uploaded_url(client), quantity=3).json()
+    response = client.patch(f"/api/items/{created['id']}", json={})
+    assert response.status_code == 200
+    for field in ["quantity", "price", "image_urls"]:
+        assert response.json()[field] == created[field]
+
+
+def test_quantity_and_image_updates_require_owner_and_authentication(client, registered_user, second_user):
+    login(client)
+    url = uploaded_url(client)
+    created = create_item(client, url, quantity=3).json()
+    endpoint = f"/api/items/{created['id']}"
+    login(client, email=second_user["email"])
+    for changes in [{"quantity": 5}, {"image_urls": []}]:
+        assert client.patch(endpoint, json=changes).status_code == 403
+    client.post("/api/auth/logout")
+    for changes in [{"quantity": 5}, {"image_urls": []}]:
+        assert client.patch(endpoint, json=changes).status_code == 401
+    assert client.get(endpoint).json() == created
+    assert client.get(url).status_code == 200
+
+
+def test_owner_cannot_add_another_users_upload_to_image_free_listing(client, registered_user, second_user):
+    login(client)
+    created = create_item(client, quantity=3).json()
+    login(client, email=second_user["email"])
+    foreign_url = uploaded_url(client)
+    login(client)
+    response = client.patch(f"/api/items/{created['id']}", json={"image_urls": [foreign_url]})
+    assert response.status_code == 403
+    assert client.get(f"/api/items/{created['id']}").json() == created
+    assert client.get(foreign_url).status_code == 200
+
+
+def test_image_count_patch_failure_preserves_existing_images(client, registered_user):
+    url = uploaded_url(client)
+    created = create_item(client, url, quantity=3).json()
+    endpoint = f"/api/items/{created['id']}"
+    response = client.patch(endpoint, json={"image_urls": [f"/uploads/{n}.png" for n in range(6)]})
+    assert response.status_code == 422
+    assert client.get(endpoint).json() == created
+    assert client.get(url).status_code == 200

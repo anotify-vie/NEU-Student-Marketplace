@@ -128,3 +128,19 @@ def test_password_is_hashed_in_database(client, registered_user):
         user = db.exec(select(User).where(User.email == "student@example.com")).first()
         assert user.password_hash != "Secret123"
         assert "Secret123" not in user.password_hash
+
+
+def test_register_accepts_minimum_password_without_character_class_rules(client):
+    assert register(client, password="abcdefgh").status_code == 201
+
+
+def test_register_accepts_exactly_72_utf8_bytes_and_login_normalizes_email(client):
+    password = "á" * 36
+    response = register(client, display_name="  Test Student  ", password=password)
+    assert response.status_code == 201
+    assert response.json()["display_name"] == "Test Student"
+    response = client.post(
+        "/api/auth/login", json={"email": "  STUDENT@EXAMPLE.COM  ", "password": password}
+    )
+    assert response.status_code == 200
+    assert response.json()["email"] == "student@example.com"

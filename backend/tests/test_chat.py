@@ -200,3 +200,26 @@ def test_chat_timestamps_are_always_utc():
         id=1, conversation_id=1, sender_id=1, text="Hi", created_at=datetime(2026, 1, 1, 3, 0)
     )
     assert message.model_dump(mode="json")["created_at"] == "2026-01-01T03:00:00Z"
+
+
+@pytest.mark.parametrize("quantity", [None, 3], ids=["default", "multiple-units"])
+def test_image_free_conversation_items_include_current_quantity(client, registered_user, second_user, quantity):
+    login(client)
+    created = create_item(client, **({} if quantity is None else {"quantity": quantity})).json()
+    as_buyer(client)
+    opened = open_conversation(client, created["id"])
+    assert opened.status_code == 201
+    for conversation in [opened.json(), client.get("/api/conversations").json()[0]]:
+        assert conversation["item"]["quantity"] == (quantity or 1)
+        assert conversation["item"]["image_urls"] == []
+    login(client)
+    updated = client.patch(f"/api/items/{created['id']}", json={"quantity": 5})
+    assert updated.status_code == 200
+    assert updated.json()["price"] == created["price"]
+    assert client.get("/api/conversations").json()[0]["item"]["quantity"] == 5
+    as_buyer(client)
+    reopened = open_conversation(client, created["id"])
+    assert reopened.status_code == 200
+    assert reopened.json()["id"] == opened.json()["id"]
+    assert reopened.json()["item"]["quantity"] == 5
+    assert client.get("/api/conversations").json()[0]["item"]["quantity"] == 5

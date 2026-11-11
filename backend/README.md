@@ -35,6 +35,19 @@ uvicorn main:app --reload
 
 The SQLite database (`marketplace.db`) is created automatically on first start.
 
+Startup also migrates existing listings for API v1.1: a missing `quantity` column
+is added with existing listings initialized to `1`. The column has
+`NOT NULL DEFAULT 1` on both new and upgraded databases. Databases created by the initial quantity release
+are upgraded too, preserving their existing quantities. The upgrade retains
+listing prices, images, timestamps, conversations and messages; no reset is
+needed. It is safe to restart after migration.
+
+Listing `price` is the total asking price for all units. Create defaults to
+`quantity=1` and `image_urls=[]`; owners can upload images later and PATCH the
+complete desired image list. Omitted PATCH fields remain unchanged. Account
+validation rules and the proportional display-price formula are documented in
+[`docs/api-contract.md`](../docs/api-contract.md).
+
 ## Seed demo accounts and listings
 
 ```bash

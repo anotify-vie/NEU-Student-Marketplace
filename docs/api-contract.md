@@ -116,7 +116,12 @@ Example edit adding an image without losing existing images:
 ### Authentication validation notes for FE
 
 - Login uses **email** and password; this contract does **not** introduce username-based login. Show the email format hint rather than claiming a username is accepted.
-- Registration has `display_name` (2–80 characters), email and password; client hints must match server-side validation. **Before implementation, BE must verify actual password constraints in `backend/` and document them here** (including minimum length and UTF-8 byte limit, if applicable). FE must not invent stricter password criteria. Login should not reveal whether email or password was incorrect.
+- Verified against `backend/schemas/__init__.py` and `backend/routers/auth.py`:
+  - **Registration display name:** 2–80 characters; surrounding whitespace is trimmed and the trimmed name must still contain at least 2 characters. The request also enforces the 80-character limit before trimming.
+  - **Registration email:** required, validated with Pydantic `EmailStr`; surrounding whitespace is trimmed and the address is lowercased before validation/storage. No university-domain restriction or email verification is implemented. A duplicate normalized address returns 409.
+  - **Registration password:** at least **8 characters** and at most **72 UTF-8 bytes** (bcrypt limit). Passwords are not trimmed; there is no required uppercase, digit or symbol rule. A password may satisfy the character minimum but exceed the byte maximum, e.g. 37 `á` characters occupy 74 bytes and are rejected. These limits return 400; the request schema separately accepts only strings of 1–128 characters (otherwise 422).
+  - **Login:** email is trimmed/lowercased; its request limit is 254 characters. Login does not use `EmailStr` validation or impose registration's password minimum: its password schema accepts 1–128 characters. Unknown email or incorrect password returns the same 401 message, `Incorrect email or password.`; schema-invalid requests return 422.
+- FE hints must use these server-enforced rules, including the UTF-8 byte distinction, without adding stricter password criteria or username-based login.
 
 ## Image uploads
 
