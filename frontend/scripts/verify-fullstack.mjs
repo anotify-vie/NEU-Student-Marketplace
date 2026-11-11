@@ -149,6 +149,51 @@ try {
   await until(seller.session, `!document.getElementById('listing-success').hidden`);
   const listing = await api(seller, `return api.getItem(${listingId});`);
   assert(listing.title === 'Updated Integration Textbook' && listing.price === 50000, 'Listing edit did not persist');
+  assert(listing.quantity === 1, 'Default quantity should be 1');
+  // v1.1 on the real backend: image-free listing, quantity pricing, later image, partial update, image removal
+  const pickImage = `(() => { const canvas=document.createElement('canvas');canvas.width=8;canvas.height=8;const raw=atob(canvas.toDataURL('image/png').split(',')[1]);const file=new File([Uint8Array.from(raw,c=>c.charCodeAt(0))],'photo.png',{type:'image/png'});const transfer=new DataTransfer();transfer.items.add(file);const input=document.getElementById('images');input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true})); })()`;
+  const formReady = `!document.getElementById('page-form').hidden`;
+  const savedOk = `!document.getElementById('listing-success').hidden`;
+  const previews = count => `document.querySelectorAll('#image-previews img').length === ${count}`;
+  await navigate(seller, '/pages/create-listing.html');
+  await until(seller.session, formReady);
+  await submit(seller, {title:'Stationery Bundle',category:'other',quantity:'3',price:'100000',condition:'good',description:'Pens and notebooks.',location:'NEU Library'});
+  await until(seller.session, savedOk);
+  const bundleId = await evaluate(seller.session, `Number(new URL(document.getElementById('view-listing').href).searchParams.get('id'))`);
+  const bundle = await api(seller, `return api.getItem(${bundleId});`);
+  assert(bundle.quantity === 3 && bundle.price === 100000 && bundle.image_urls.length === 0, 'Image-free listing with quantity was not saved');
+  await navigate(seller, `/pages/product-detail.html?id=${bundleId}`);
+  await until(seller.session, `!document.getElementById('detail-content').hidden && document.getElementById('main-product-image').src.endsWith('placeholder.svg') && document.getElementById('main-product-image').naturalWidth > 0`);
+  for (const [quantity, expected] of [[1,'33,333 VND'],[2,'66,667 VND'],[3,'100,000 VND']]) {
+    const text = await evaluate(seller.session, `(() => { const input=document.getElementById('selected-quantity'); input.value='${quantity}'; input.dispatchEvent(new Event('input',{bubbles:true})); return document.getElementById('selected-price').textContent; })()`);
+    assert(text.includes(expected), `Real selected price for ${quantity} should be ${expected}`);
+  }
+  await navigate(seller, `/pages/edit-listing.html?id=${bundleId}`);
+  await until(seller.session, `${formReady} && document.getElementById('quantity').value === '3'`);
+  await evaluate(seller.session, pickImage);
+  await until(seller.session, previews(1));
+  await submit(seller, {});
+  await until(seller.session, savedOk);
+  const withImage = await api(seller, `return api.getItem(${bundleId});`);
+  assert(withImage.image_urls.length === 1 && withImage.quantity === 3, 'Adding an image later failed');
+  await navigate(seller, `/pages/edit-listing.html?id=${bundleId}`);
+  await until(seller.session, `${formReady} && ${previews(1)}`);
+  await submit(seller, {title:'Stationery Bundle Edited'});
+  await until(seller.session, savedOk);
+  const kept = await api(seller, `return api.getItem(${bundleId});`);
+  assert(kept.title === 'Stationery Bundle Edited' && JSON.stringify(kept.image_urls) === JSON.stringify(withImage.image_urls), 'Existing image changed when editing another field');
+  const partial = await api(seller, `return api.updateItem(${bundleId},{title:'Stationery Bundle Partial',category:'other',price:100000,condition:'good',description:'Pens and notebooks.',location:'NEU Library'});`);
+  assert(partial.quantity === 3 && JSON.stringify(partial.image_urls) === JSON.stringify(withImage.image_urls), 'Update without quantity/images changed them');
+  await navigate(seller, `/pages/edit-listing.html?id=${bundleId}`);
+  await until(seller.session, `${formReady} && ${previews(1)}`);
+  await submit(seller, {quantity:'0'});
+  assert(await evaluate(seller.session, `document.getElementById('quantity-error').textContent.length > 0`), 'Quantity 0 accepted');
+  await evaluate(seller.session, `document.querySelector('.remove-image').click()`);
+  await submit(seller, {quantity:'3'});
+  await until(seller.session, savedOk);
+  const removed = await api(seller, `return api.getItem(${bundleId});`);
+  assert(removed.image_urls.length === 0 && removed.quantity === 3, 'Removing the image failed');
+  await api(seller, `await api.deleteItem(${bundleId});`);
   const cookies = await command('Network.getCookies', {urls:[seller.base]}, seller.session);
   assert(cookies.cookies.some(cookie => cookie.name === 'session_token' && cookie.httpOnly && cookie.sameSite === 'Lax'), 'Session cookie attributes missing');
   assert(await evaluate(seller.session, `!document.cookie.includes('session_token')`), 'Session cookie exposed to JavaScript');
@@ -194,6 +239,9 @@ try {
   await navigate(buyer, `/pages/product-detail.html?id=${listingId}`);
   await until(buyer.session, `document.getElementById('product-status').textContent === 'Sold' && document.getElementById('chat-button').disabled`);
   assert(await api(buyer, `return (await api.getUserStats(${listing.seller_id})).sold === 1;`), 'Public sold count stale');
+  await navigate(buyer, `/pages/product-detail.html?id=${listingId}`);
+  await until(buyer.session, `!document.getElementById('detail-content').hidden`);
+  assert(await evaluate(buyer.session, `document.querySelector('.quantity-picker').hidden && !document.querySelector('.quantity-info').textContent.includes('available') && document.querySelector('.quantity-info').textContent.includes('Sold') && document.getElementById('chat-button').disabled`), 'Sold listing still offers quantity selection or chat');
   console.log('PASS search/detail, two-account chat and polling, history after reload, owner authorization and Mark Sold');
 
   // Enough real records to exercise page two; reuse the seller's uploaded image.

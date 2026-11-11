@@ -125,7 +125,7 @@ try {
   await account(null);await navigate('/pages/product-detail.html?id=101');
   await waitFor(`document.getElementById('product-title').textContent==='Microeconomics Textbook'`,'Detail not ready');
   await evaluate(`document.getElementById('chat-button').click()`);
-  await waitFor(`location.pathname==='/pages/login.html' && !!document.getElementById('page-form')`,'Detail did not route guest to Login');
+  await waitFor(`location.pathname==='/pages/login.html' && !!document.getElementById('page-form') && !!document.querySelector('.site-header .brand')`,'Detail did not route guest to Login');
   await evaluate(`document.getElementById('email').value='buyer@example.com';document.getElementById('password').value='MarketplaceDemo1!';document.getElementById('page-form').requestSubmit()`);
   await waitFor(`location.pathname==='/pages/product-detail.html' && document.getElementById('product-title')?.textContent==='Microeconomics Textbook'`,'Login did not restore Detail');
   await evaluate(`document.getElementById('chat-button').click()`);
