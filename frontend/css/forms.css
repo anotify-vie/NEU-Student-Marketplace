@@ -23,3 +23,5 @@ form[aria-busy="true"]{pointer-events:none;opacity:.75}button:disabled{cursor:wa
 [hidden]{display:none!important}
 @media(max-width:700px){.auth-main{padding-block:24px}.auth-card{grid-template-columns:1fr}.auth-art{min-height:170px;padding:20px;background-position:center 48%}.auth-art h2{font-size:26px}.auth-art p:last-child{display:none}.auth-content{padding:26px 22px}.auth-brand{margin-bottom:20px}.listing-card{padding:22px}.form-row{grid-template-columns:1fr;gap:0}}
 @media(max-width:380px){.auth-content,.listing-card{padding:20px 16px}.auth-content h1,.listing-card h1{font-size:25px}.image-previews{gap:8px}.image-previews figure,.image-previews img{width:100px}}
+
+.required-mark{color:#b4233b}.required-note{margin:0 0 16px;color:var(--muted);font-size:13px}.field-hint{color:var(--muted);font-size:12px}

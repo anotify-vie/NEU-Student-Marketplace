@@ -43,13 +43,10 @@ function validate(names) {
     else if (name === 'password' && page === 'register' && input.value.length < 8) error = 'Use at least 8 characters.';
     else if (name === 'confirm_password' && input.value !== form.elements.password.value) error = 'Passwords do not match.';
     else if (name === 'price' && (!Number.isSafeInteger(Number(value)) || Number(value) < 0)) error = 'Enter a whole VND amount of 0 or more.';
+    else if (name === 'quantity' && (!Number.isSafeInteger(Number(value)) || Number(value) < 1)) error = 'Enter a whole number of 1 or more.';
     else if (input.maxLength > 0 && value.length > input.maxLength) error = `Use no more than ${input.maxLength} characters.`;
     fieldError(name,error);
     if (error) first ||= input;
-  }
-  if (!isAuth && !images.length) {
-    fieldError('images','Add at least one product image.');
-    first ||= form.elements.images;
   }
   first?.focus();
   return !first;
@@ -161,6 +158,7 @@ async function loadListing() {
         return;
       }
       for (const name of ['title','category','price','condition','description','location']) form.elements[name].value = item[name];
+      form.elements.quantity.value = item.quantity || 1;
       images.splice(0,images.length,...item.image_urls.map(url => ({url,preview:resolveAssetUrl(url)})));
       renderImages();
       document.getElementById('cancel-link').href = `product-detail.html?id=${item.id}`;
@@ -177,7 +175,7 @@ async function loadListing() {
 form.addEventListener('submit',async event => {
   event.preventDefault();
   if (pendingImages) return feedback('Please wait for the image previews to finish.',true);
-  const names = isAuth ? ['email','password',...(page === 'register' ? ['display_name','confirm_password'] : [])] : ['title','category','price','condition','description','location'];
+  const names = isAuth ? ['email','password',...(page === 'register' ? ['display_name','confirm_password'] : [])] : ['title','category','quantity','price','condition','description','location'];
   if (!validate(names)) return;
   const submit = form.querySelector('[type="submit"]');
   if (submit.disabled) return;
@@ -201,6 +199,7 @@ form.addEventListener('submit',async event => {
     } else {
       if (!await getCurrentUser()) return redirectToLogin();
       values.price = Number(values.price);
+      values.quantity = Number(values.quantity);
       // Freeze controls while files upload; retries reuse successful upload URLs.
       const imageUrls = [];
       for (const entry of images) {

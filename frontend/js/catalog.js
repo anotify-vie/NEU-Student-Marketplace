@@ -69,7 +69,7 @@ function buildFilters() {
   const priceGroup = document.createElement('fieldset');
   priceGroup.className = 'filter-group';
   const priceLegend = document.createElement('legend');
-  priceLegend.textContent = 'Price Range';
+  priceLegend.textContent = 'Total Price Range';
   const row = document.createElement('div');
   row.className = 'price-inputs';
   const min = document.createElement('input');
@@ -79,7 +79,7 @@ function buildFilters() {
   max.type = 'number'; max.name = 'max_price'; max.min = '0'; max.step = '1000'; max.placeholder = 'Max';
   max.setAttribute('aria-label','Maximum price in VND'); max.value = state.max_price;
   row.append(min,document.createTextNode('–'),max);
-  const hint = document.createElement('p'); hint.className = 'filter-hint'; hint.textContent = 'Prices in VND';
+  const hint = document.createElement('p'); hint.className = 'filter-hint'; hint.textContent = 'Total listing price in VND';
   const error = document.createElement('p'); error.className = 'filter-error'; error.id = 'price-error'; error.setAttribute('role','alert');
   priceGroup.append(priceLegend,row,hint,error);
   filtersElement.append(priceGroup,radioGroup('condition','Condition',conditionOptions));

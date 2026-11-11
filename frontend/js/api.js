@@ -259,11 +259,12 @@ export async function uploadImage(file) {
 }
 
 function listingValues(values) {
-  const data = Object.fromEntries(['title','category','price','condition','description','location','image_urls'].map(key => [key,values[key]]));
+  const data = Object.fromEntries(['title','category','price','quantity','condition','description','location','image_urls'].map(key => [key,values[key]]));
   if (!data.title?.trim() || !data.description?.trim() || !data.location?.trim() ||
       !['textbooks','uniforms','study_tools','student_items','other'].includes(data.category) ||
       !['new','good','fair'].includes(data.condition) || !Number.isSafeInteger(data.price) || data.price < 0 ||
-      !Array.isArray(data.image_urls) || data.image_urls.length < 1 || data.image_urls.length > 5) throw new Error('Please complete all listing fields and include 1–5 images.');
+      !Number.isSafeInteger(data.quantity) || data.quantity < 1 ||
+      !Array.isArray(data.image_urls) || data.image_urls.length > 5) throw new Error('Please complete all listing fields. You can add up to 5 images.');
   return data;
 }
 export async function createItem(values) {

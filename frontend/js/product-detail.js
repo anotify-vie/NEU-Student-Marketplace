@@ -65,11 +65,31 @@ function updateFavorite(item) {
   favoriteButton.textContent = active ? '♥ Remove from Favorites' : '♡ Add to Favorites';
 }
 
+// Round-half-up price for the selected units (integer maths, as in the API contract).
+function setupQuantity(item) {
+  const total = item.quantity || 1;
+  const input = document.getElementById('selected-quantity');
+  document.getElementById('product-quantity').textContent = total;
+  input.max = total;
+  input.value = 1;
+  function update() {
+    let count = Math.floor(Number(input.value));
+    if (!count || count < 1) count = 1;
+    if (count > total) count = total;
+    const price = Math.floor((2 * item.price * count + total) / (2 * total));
+    document.getElementById('selected-price').textContent = `Estimated price for ${count}: ${formatPrice(price)}`;
+  }
+  input.addEventListener('input',update);
+  input.addEventListener('change',() => { input.value = Math.min(total,Math.max(1,Math.floor(Number(input.value)) || 1)); update(); });
+  update();
+}
+
 async function renderDetail(item,seller) {
   document.title = `${item.title} | NEU Student Marketplace`;
   document.getElementById('breadcrumb-item').textContent = item.title;
   document.getElementById('product-title').textContent = item.title;
   document.getElementById('product-price').textContent = formatPrice(item.price);
+  setupQuantity(item);
   document.getElementById('product-description').textContent = item.description || 'No description provided.';
   document.getElementById('product-location').textContent = item.location || 'Ask the seller';
   const category = document.getElementById('product-category');
