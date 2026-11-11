@@ -57,7 +57,7 @@ const server = createServer(async (request,response) => {
     const file=path.resolve(root,`.${decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname)}`);
     if(!file.startsWith(root+path.sep)) {response.writeHead(403);return response.end();}
     let data=await readFile(file);
-    if(file.endsWith('/js/api.js')) data=Buffer.from(data.toString().replace(/^export const API_MODE = .*;$/m,`export const API_MODE = '${realMode ? 'real' : 'mock'}';`).replace(/^export const API_BASE_URL = .*;$/m,`export const API_BASE_URL = '${base}/api';`));
+    if(file.replaceAll('\\','/').endsWith('/js/api.js')) data=Buffer.from(data.toString().replace(/^export const API_MODE = .*;$/m,`export const API_MODE = '${realMode ? 'real' : 'mock'}';`).replace(/^export const API_BASE_URL = .*;$/m,`export const API_BASE_URL = '${base}/api';`));
     response.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream'});response.end(data);
   } catch {response.writeHead(404);response.end('Not found');}
 });

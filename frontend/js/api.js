@@ -258,17 +258,21 @@ export async function uploadImage(file) {
   });
 }
 
-function listingValues(values) {
+function listingValues(values,isCreate = false) {
   const data = Object.fromEntries(['title','category','price','quantity','condition','description','location','image_urls'].map(key => [key,values[key]]));
+  // Defaults apply only to create; on update an omitted field is left out so it stays unchanged.
+  for (const [key,fallback] of [['quantity',1],['image_urls',[]]]) {
+    if (data[key] === undefined) { if (isCreate) data[key] = fallback; else delete data[key]; }
+  }
   if (!data.title?.trim() || !data.description?.trim() || !data.location?.trim() ||
       !['textbooks','uniforms','study_tools','student_items','other'].includes(data.category) ||
       !['new','good','fair'].includes(data.condition) || !Number.isSafeInteger(data.price) || data.price < 0 ||
-      !Number.isSafeInteger(data.quantity) || data.quantity < 1 ||
-      !Array.isArray(data.image_urls) || data.image_urls.length > 5) throw new Error('Please complete all listing fields. You can add up to 5 images.');
+      (data.quantity !== undefined && (!Number.isSafeInteger(data.quantity) || data.quantity < 1)) ||
+      (data.image_urls !== undefined && (!Array.isArray(data.image_urls) || data.image_urls.length > 5))) throw new Error('Please complete all listing fields. You can add up to 5 images.');
   return data;
 }
 export async function createItem(values) {
-  const data = listingValues(values);
+  const data = listingValues(values,true);
   if (API_MODE !== 'mock') return request('/items',jsonRequest('POST',data));
   const user = await requireUser();
   const item = {...data,id:Math.max(0,...(await allMockItems()).map(entry => entry.id)) + 1,seller_id:user.id,status:'available',created_at:new Date().toISOString()};

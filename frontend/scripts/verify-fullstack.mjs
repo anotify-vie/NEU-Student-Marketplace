@@ -41,7 +41,7 @@ const server = createServer(async (req, res) => {
     if (!file.startsWith(path.join(root, 'frontend') + path.sep)) { res.writeHead(403).end(); return; }
     let data = await readFile(file);
     // Keep production mode selection; only change the ephemeral backend port.
-    if (file.endsWith('/js/api.js')) data = Buffer.from(data.toString().replace(':8000/api', `:${apiPort}/api`));
+    if (file.replaceAll('\\','/').endsWith('/js/api.js')) data = Buffer.from(data.toString().replace(':8000/api', `:${apiPort}/api`));
     res.writeHead(200, {'Content-Type':({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png'})[path.extname(file)] || 'application/octet-stream', 'Cache-Control':'no-store'});
     res.end(data);
   } catch { res.writeHead(404).end(); }
@@ -175,8 +175,8 @@ try {
   await evaluate(buyer.session, `document.getElementById('chat-button').click()`);
   await until(buyer.session, `location.pathname === '/pages/chat.html' && !document.getElementById('message-input')?.disabled`);
   const conversationId = await evaluate(buyer.session, `Number(new URLSearchParams(location.search).get('conversationId'))`);
-  await evaluate(buyer.session, `document.getElementById('message-form').requestSubmit()`);
-  assert(await evaluate(buyer.session, `document.getElementById('message-error').textContent.includes('Enter a message')`), 'Empty chat accepted');
+  // The thread can still be reloading right after the composer enables, so retry the empty submit until validation shows.
+  await until(buyer.session, `(document.getElementById('message-form').requestSubmit(), document.getElementById('message-error').textContent.includes('Enter a message'))`);
   await evaluate(buyer.session, `document.getElementById('message-input').value='Is this available?';document.getElementById('message-form').requestSubmit()`);
   await until(buyer.session, `document.querySelector('.message')?.textContent.includes('Is this available?')`);
   await navigate(seller, `/pages/chat.html?conversationId=${conversationId}`);

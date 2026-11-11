@@ -1,4 +1,5 @@
 import { getItem, getUser, getCurrentUser, openConversation } from './api.js';
+import { selectedPrice } from './pricing.js';
 import { renderShell, formatPrice, resolveAssetUrl, isFavorite, toggleFavorite } from './components.js';
 
 renderShell();
@@ -65,10 +66,14 @@ function updateFavorite(item) {
   favoriteButton.textContent = active ? '♥ Remove from Favorites' : '♡ Add to Favorites';
 }
 
-// Round-half-up price for the selected units (integer maths, as in the API contract).
 function setupQuantity(item) {
   const total = item.quantity || 1;
   const input = document.getElementById('selected-quantity');
+  if (item.status === 'sold') {
+    document.querySelector('.quantity-info').textContent = 'Total listing price · Sold';
+    document.querySelector('.quantity-picker').hidden = true;
+    return;
+  }
   document.getElementById('product-quantity').textContent = total;
   input.max = total;
   input.value = 1;
@@ -76,7 +81,7 @@ function setupQuantity(item) {
     let count = Math.floor(Number(input.value));
     if (!count || count < 1) count = 1;
     if (count > total) count = total;
-    const price = Math.floor((2 * item.price * count + total) / (2 * total));
+    const price = selectedPrice(item.price,total,count);
     document.getElementById('selected-price').textContent = `Estimated price for ${count}: ${formatPrice(price)}`;
   }
   input.addEventListener('input',update);
