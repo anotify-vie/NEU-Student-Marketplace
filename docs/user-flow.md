@@ -1,4 +1,4 @@
-# SITEMAP AND USER FLOWS (v1.1 proposed enhancement)
+# SITEMAP AND USER FLOWS (v1.1 listing enhancements)
 
 ## Sitemap
 

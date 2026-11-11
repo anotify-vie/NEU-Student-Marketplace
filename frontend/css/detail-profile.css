@@ -21,6 +21,9 @@
 .detail-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .detail-actions .button{min-height:45px;padding:10px 12px;font-size:13px}
 .button[disabled]{opacity:.55;cursor:not-allowed;box-shadow:none;transform:none}
+.detail-actions .button:disabled{cursor:not-allowed}
+.detail-actions .button.is-own-listing:disabled{opacity:1;background:#edf4ff;color:var(--primary);border-color:#cfe0ff;cursor:default}
+.detail-actions .button[aria-busy="true"]{cursor:wait}
 .action-message{min-height:17px;margin:10px 0 0;color:#9d3850;font-size:12px}
 .seller-card{margin-top:18px;padding:18px;border:1px solid #e3edfb;border-radius:10px;background:#f6faff}
 .seller-card h2{margin:0 0 12px;font-size:15px;font-weight:800}
@@ -82,4 +85,5 @@
 @media(max-width:700px){.detail-layout,.detail-bottom,.profile-columns{grid-template-columns:1fr}.main-image-frame{height:auto;aspect-ratio:1.25}.detail-summary h1{font-size:27px}.detail-actions{grid-template-columns:1fr 1fr}.profile-cover{height:165px}.profile-header-body{align-items:center;flex-wrap:wrap;padding:0 17px 17px;gap:9px 13px}.profile-avatar-large{width:88px;height:88px;margin-top:-27px;border-width:3px;font-size:27px}.profile-heading{flex-basis:calc(100% - 105px);padding-top:9px}.profile-heading h1{font-size:22px}.profile-header-body>.button{margin-left:101px;margin-top:2px}.profile-stats{padding:14px 0}.profile-stats strong{font-size:19px}.profile-stats span{font-size:10px}.profile-panel{padding:19px}.edit-grid{grid-template-columns:1fr}.information-list>div{grid-template-columns:110px 1fr}}
 @media(max-width:400px){.detail-actions{grid-template-columns:1fr}.thumbnail-button{width:72px;height:63px}.seller-row{flex-wrap:wrap}.seller-row .text-link{margin-left:53px}.profile-heading h1{font-size:20px}.profile-header-body>.button{margin-left:0;width:100%}.profile-stats span{font-size:9px}.information-list>div{grid-template-columns:95px 1fr}}
 
-.quantity-info{margin:-8px 0 14px;color:var(--muted);font-size:13px}.quantity-picker{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:16px}.quantity-picker label{font-size:13px;font-weight:750}.quantity-picker input{width:90px;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font:inherit}.selected-price{margin:0;color:var(--primary);font-weight:750;overflow-wrap:anywhere}
+.quantity-info{margin:-8px 0 14px;color:var(--muted);font-size:13px}.quantity-picker{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:16px}.quantity-picker label{font-size:13px;font-weight:750}.quantity-picker input{width:90px;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font:inherit}.selected-price{margin:0;color:var(--primary);font-weight:750;overflow-wrap:anywhere}
+.quantity-hint{flex-basis:100%;margin:0;color:var(--muted);font-size:12px;overflow-wrap:anywhere}

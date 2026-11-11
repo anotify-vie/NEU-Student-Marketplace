@@ -118,6 +118,14 @@ For a different backend port or deployment, edit `API_BASE_URL` in `frontend/js/
 
 ## Verification
 
+The merged application supports listing quantities and optional photos. `price`
+is the total VND asking price for all units; Detail shows a round-half-up estimate
+for the selected units. This selection does not reserve stock or create an order.
+Sellers can publish with 0–5 photos and add photos later in Edit Listing.
+
+Current local results, responsive evidence and verification limits are recorded
+in [`docs/frontend-acceptance.md`](docs/frontend-acceptance.md).
+
 Backend tests use their own temporary database and upload directory:
 
 ```bash
@@ -133,6 +141,7 @@ From the repository root, with backend dependencies installed:
 ```bash
 node frontend/scripts/verify-fullstack.mjs
 node frontend/scripts/verify-pricing.mjs
+node frontend/scripts/verify-responsive.mjs
 node frontend/scripts/verify-catalog-pagination.mjs
 node frontend/scripts/verify-fe1-retry.mjs
 node frontend/scripts/verify-fe2-01.mjs
@@ -140,6 +149,14 @@ node frontend/scripts/verify-fe2-02.mjs
 ```
 
 `verify-fullstack.mjs` starts actual FastAPI and static servers on temporary ports, uses temporary SQLite/uploads and isolated browser sessions, and removes its temporary data when finished. It covers registration/login, listing upload/create/edit/delete, profile statistics/editing, two-account chat, sold status, logout, real pagination/retry, errors and unauthorized access. Set `PYTHON` to your backend virtual environment's Python if it is outside `backend/.venv`.
+
+`verify-responsive.mjs` starts its own static server and uses isolated mock
+storage to audit all 11 screens plus open filters/navigation, gallery,
+image-free listings and populated Chat at 320/375/430/768/1366/1920 CSS px.
+It checks geometry, keyboard/pointer interactions, common 44px touch targets
+and console errors, then writes screenshots at 320/768/1366px and a JSON result
+to `docs/screenshots/v1.1/` (or `SCREENSHOTS_DIR`). Screenshots still need visual
+review; this script does not replace real-backend integration tests.
 
 The other scripts use mock fixtures or HTTP API stubs; their results alone do not verify FastAPI integration. The original layout checks need a frontend server running at `http://127.0.0.1:5500` (or `FRONTEND_URL`):
 

@@ -1,4 +1,4 @@
-# DESIGN SPECIFICATION — NEU Student Marketplace (v1.1 proposed enhancement)
+# DESIGN SPECIFICATION — NEU Student Marketplace (v1.1 listing enhancements)
 
 ## 0. Source of truth
 

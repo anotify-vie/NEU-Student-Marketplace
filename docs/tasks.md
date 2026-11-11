@@ -112,7 +112,10 @@ Reproduce **all 12 panels of the approved English mockup**, including the full *
 
 ---
 
-## v1.1 change request — Two follow-up GitHub Issues (proposed; do not mark complete until verified)
+## v1.1 change request — Issues #21 and #22
+
+Implementation checklists verified locally on 2026-11-11 after merging BE #23, BE fixes `080cb15` and FE #24. See [frontend-acceptance.md](frontend-acceptance.md) for real-API results, the six-width audit, screenshots and verification limits. Earlier phase checklists are unchanged.
+
 
 **Decision gate (before implementation):** FE and BE agree on `docs/api-contract.md` v1.1, including `quantity`, total-price semantics, optional images, image replacement semantics, rounding, legacy-data migration and actual auth validation rules. Obtain team approval and merge the docs PR to `main` first. Do not change previously completed issue checklists retroactively.
 
@@ -120,13 +123,13 @@ Reproduce **all 12 panels of the approved English mockup**, including the full *
 
 **Scope / tasks**
 
-- [ ] Verify existing backend account validation and document actual email/display name/password constraints; keep email-only login.
-- [ ] Add `quantity` (integer >= 1, default 1) to Item models, create/edit/read schemas and all embedded item responses. Preserve `price` as total listed VND price.
-- [ ] Implement a safe SQLite migration/backfill for existing rows (`quantity=1`, retain current prices); do not delete or reset data.
-- [ ] Allow `image_urls=[]` or omission on create and optional later image uploads; preserve owner permissions, max five images and upload security.
-- [ ] Keep PATCH partial-update semantics, including complete-list replacement for supplied `image_urls`; omitted fields remain unchanged.
-- [ ] Ensure pricing interpretation/round-half-up rule is documented and consistent; do not introduce a checkout or dedicated pricing endpoint.
-- [ ] Update tests for no-image create, owner adding photos later, invalid quantities, unchanged legacy prices, partial updates, permissions and regression of auth/chat/search.
+- [x] Verify existing backend account validation and document actual email/display name/password constraints; keep email-only login.
+- [x] Add `quantity` (integer >= 1, default 1) to Item models, create/edit/read schemas and all embedded item responses. Preserve `price` as total listed VND price.
+- [x] Implement a safe SQLite migration/backfill for existing rows (`quantity=1`, retain current prices); do not delete or reset data.
+- [x] Allow `image_urls=[]` or omission on create and optional later image uploads; preserve owner permissions, max five images and upload security.
+- [x] Keep PATCH partial-update semantics, including complete-list replacement for supplied `image_urls`; omitted fields remain unchanged.
+- [x] Ensure pricing interpretation/round-half-up rule is documented and consistent; do not introduce a checkout or dedicated pricing endpoint.
+- [x] Update tests for no-image create, owner adding photos later, invalid quantities, unchanged legacy prices, partial updates, permissions and regression of auth/chat/search.
 
 **BE acceptance:** Create no-image listing succeeds; item responses expose positive quantity; existing data migrates safely; owner adds/removes images without unintended loss; all backend tests pass.
 
@@ -134,15 +137,15 @@ Reproduce **all 12 panels of the approved English mockup**, including the full *
 
 **Scope / tasks**
 
-- [ ] Display backend-aligned email/display-name/password hints on login/register; no unsupported username login.
-- [ ] Mark Create/Edit required fields with red `*` plus a textual `* Required fields` legend; mark product images `(Optional)`.
-- [ ] Allow 0–5 images on create and image upload after creation; preserve existing image URLs when appending.
-- [ ] Add integer Quantity (default 1) and **Total Price (VND)** inputs on Create/Edit with validation and clear explanatory text.
-- [ ] Show a no-image placeholder; on Item Detail add available quantity, selector `1..quantity` and round-half-up proportional estimated-price display; do not create cart/payment/inventory logic.
-- [ ] Keep existing price-based Browse/Search filtering/sorting based on total listing price and label appropriately.
-- [ ] Update API adapter and mock data to match the agreed v1.1 item shape; integrate real API once BE is merged.
-- [ ] Audit desktop, tablet and mobile layouts (320, 375, 430, 768, 1366 and 1920 CSS px): nav, grids, forms, gallery, buttons, chat and filters; no overflow or overlapping elements.
-- [ ] Add focused regression checks and desktop/mobile evidence; confirm real API flows including optional photos and quantity price calculations.
+- [x] Display backend-aligned email/display-name/password hints on login/register; no unsupported username login.
+- [x] Mark Create/Edit required fields with red `*` plus a textual `* Required fields` legend; mark product images `(Optional)`.
+- [x] Allow 0–5 images on create and image upload after creation; preserve existing image URLs when appending.
+- [x] Add integer Quantity (default 1) and **Total Price (VND)** inputs on Create/Edit with validation and clear explanatory text.
+- [x] Show a no-image placeholder; on Item Detail add available quantity, selector `1..quantity` and round-half-up proportional estimated-price display; do not create cart/payment/inventory logic.
+- [x] Keep existing price-based Browse/Search filtering/sorting based on total listing price and label appropriately.
+- [x] Update API adapter and mock data to match the agreed v1.1 item shape; integrate real API once BE is merged.
+- [x] Audit desktop, tablet and mobile layouts (320, 375, 430, 768, 1366 and 1920 CSS px): nav, grids, forms, gallery, buttons, chat and filters; no overflow or overlapping elements.
+- [x] Add focused regression checks and desktop/mobile evidence; confirm real API flows including optional photos and quantity price calculations.
 
 **FE acceptance:** Valid no-image create/edit works; required/optional fields clear; calculated prices agree with contract; no broken responsive screens; existing auth, Browse/Search, Detail and Chat continue working.
 

@@ -1,11 +1,11 @@
-# API CONTRACT v1.1 — Proposed listing enhancements (pending team approval)
+# API CONTRACT v1.1 — Listing quantities and optional images
 
-> This document describes the **target API contract**, not proof that these enhancements are already implemented. Approve it with FE/BE before coding, then merge the documentation PR first. Preserve existing routes and response fields unless explicitly extended below. Local API base: `http://127.0.0.1:8000/api`.
+> This contract was introduced by documentation PR #20, followed by BE #23 and FE #24. Verified implementation results and limits are recorded in [frontend-acceptance.md](frontend-acceptance.md). Preserve existing routes and response fields unless explicitly extended below. Local API base: `http://127.0.0.1:8000/api`.
 
 ## Shared conventions
 
 - UTF-8 JSON; integer IDs; ISO 8601 timestamps; integer prices in VND.
-- Proposed authentication: **HTTP-only session cookie**. Frontend uses `credentials: 'include'`; backend CORS must allow only explicitly listed frontend origins (never wildcard origins with credentials).
+- Authentication: **HTTP-only session cookie**. Frontend uses `credentials: 'include'`; backend CORS must allow only explicitly listed frontend origins (never wildcard origins with credentials).
 - JSON for data-changing requests, except image uploads using `multipart/form-data`.
 - Standard error shape: `{ "detail": "A clear English error message" }`; appropriate HTTP 400/401/403/404/422/500.
 - Public GET access to item lists/details; login required for create/edit/delete, chat and private profile.
@@ -85,7 +85,7 @@
 }
 ```
 
-## Listing quantity, pricing and image contract (v1.1 target)
+## Listing quantity, pricing and image contract (v1.1)
 
 The following extensions apply to `POST /api/items`, `PATCH /api/items/{id}`, `GET /api/items/{id}`, `GET /api/items`, `GET /api/me/items`, and any embedded Item object in conversations. Existing item fields and endpoint paths remain unchanged.
 

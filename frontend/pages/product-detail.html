@@ -25,7 +25,7 @@
           <h1 id="product-title"></h1>
           <p id="product-price" class="detail-price"></p>
           <p class="quantity-info">Total listing price · <span id="product-quantity"></span> available</p>
-          <div class="quantity-picker"><label for="selected-quantity">Select quantity</label><input id="selected-quantity" type="number" min="1" step="1" value="1" inputmode="numeric"><p id="selected-price" class="selected-price" aria-live="polite"></p></div>
+          <div class="quantity-picker"><label for="selected-quantity">Select quantity</label><input id="selected-quantity" type="number" min="1" step="1" value="1" inputmode="numeric" aria-describedby="quantity-hint"><p id="selected-price" class="selected-price" aria-live="polite"></p><p id="quantity-hint" class="quantity-hint">Estimated price for discussing with the seller. Selecting a quantity does not place an order, reserve items or make a payment.</p></div>
           <div class="detail-tags"><span id="product-condition" class="condition-badge"></span><a id="product-category" class="category-chip" href="browse.html"></a></div>
           <div class="detail-actions"><button id="chat-button" class="button button-primary" type="button">Chat with Seller</button><button id="favorite-button" class="button button-outline" type="button" aria-pressed="false">♡ Add to Favorites</button></div>
           <p id="action-message" class="action-message" role="status"></p>

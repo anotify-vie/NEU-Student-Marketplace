@@ -95,6 +95,14 @@
 @media(max-width:640px){.header-inner{height:60px}.brand{font-size:13px}.brand-mark{width:27px;height:27px}.hero{min-height:360px;margin-top:15px;background-position:64% center}.hero:before{background:linear-gradient(90deg,rgba(232,245,255,.98),rgba(232,245,255,.83) 70%,rgba(232,245,255,.3))}.hero-content{padding:30px 23px}.hero h1{font-size:39px}.hero p:not(.eyebrow){font-size:14px}.hero-search{margin-top:18px}.hero-search button{padding:0 12px}.home-section{margin-top:35px}.section-heading h2{font-size:22px}.category-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.category-tile{min-height:126px}.category-art{width:51px;height:51px;font-size:29px}.category-tile small{font-size:10px}.home-product-grid,.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.product-image-link{aspect-ratio:1.1}.product-info{padding:9px 10px 11px}.product-title{font-size:12px}.product-price{font-size:13px}.product-date{display:none}.sell-banner{align-items:flex-start;flex-direction:column;padding:23px}.catalog-main{padding-top:17px}.breadcrumbs{margin-bottom:15px}.catalog-toolbar{align-items:flex-start;flex-direction:column}.toolbar-actions{width:100%}.toolbar-search{flex:1}.sort-label{flex-direction:column;align-items:flex-start;gap:2px}.sort-label select{max-width:145px}.catalog-toolbar h1{font-size:22px}#filters{grid-template-columns:repeat(2,minmax(0,1fr))}.footer-inner{padding-block:20px;align-items:flex-start;flex-direction:column;gap:8px}.footer-links{gap:15px}}
 @media(max-width:400px){.brand{font-size:11px}.hero h1{font-size:34px}.hero-search input{font-size:11px}.hero-search button{font-size:12px}.product-grid{gap:8px}.product-meta{margin-top:6px}.sort-label select{max-width:125px;font-size:11px}#filters{grid-template-columns:1fr 1fr}}
 
+/* Keep search and sort controls on the same baseline below the mobile label. */
+@media(max-width:640px){
+  .toolbar-actions{align-items:flex-end}
+  .toolbar-search,.sort-label select{height:44px}
+  .toolbar-search{min-width:0}
+  .toolbar-search button{width:44px;height:42px;flex-shrink:0}
+}
+
 /* Browse/Search progressive pagination */
 .catalog-pagination{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;margin:24px 0 12px;text-align:center}
 .catalog-pagination .filter-hint{margin:0}

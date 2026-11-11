@@ -1,0 +1,589 @@
+{
+  "mode": "mock",
+  "widths": [
+    320,
+    375,
+    430,
+    768,
+    1366,
+    1920
+  ],
+  "checks": [
+    {
+      "page": "home",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "navigation-open",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "browse",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filters-open",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filtered",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "search",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filters-open",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filtered",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "detail",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "no-image",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "login",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "register",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "create",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "edit",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "edit-no-image",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "profile",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "my-listings",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "chat",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "chat-conversations",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "sold",
+      "width": 320,
+      "result": "PASS"
+    },
+    {
+      "page": "home",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "navigation-open",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "browse",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filters-open",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filtered",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "search",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filters-open",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filtered",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "detail",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "no-image",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "login",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "register",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "create",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "edit",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "edit-no-image",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "profile",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "my-listings",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "chat",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "chat-conversations",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "sold",
+      "width": 375,
+      "result": "PASS"
+    },
+    {
+      "page": "home",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "navigation-open",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "browse",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filters-open",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filtered",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "search",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filters-open",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filtered",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "detail",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "no-image",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "login",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "register",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "create",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "edit",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "edit-no-image",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "profile",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "my-listings",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "chat",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "chat-conversations",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "sold",
+      "width": 430,
+      "result": "PASS"
+    },
+    {
+      "page": "home",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "navigation-open",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "browse",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filters-open",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filtered",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "search",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filters-open",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filtered",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "detail",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "no-image",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "login",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "register",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "create",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "edit",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "edit-no-image",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "profile",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "my-listings",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "chat",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "sold",
+      "width": 768,
+      "result": "PASS"
+    },
+    {
+      "page": "home",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "browse",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filters-open",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filtered",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "search",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filters-open",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filtered",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "detail",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "no-image",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "login",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "register",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "create",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "edit",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "edit-no-image",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "profile",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "my-listings",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "chat",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "sold",
+      "width": 1366,
+      "result": "PASS"
+    },
+    {
+      "page": "home",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "browse",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filters-open",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "browse-filtered",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "search",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filters-open",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "search-filtered",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "detail",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "no-image",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "login",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "register",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "create",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "edit",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "edit-no-image",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "profile",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "my-listings",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "chat",
+      "width": 1920,
+      "result": "PASS"
+    },
+    {
+      "page": "sold",
+      "width": 1920,
+      "result": "PASS"
+    }
+  ],
+  "browserErrors": []
+}

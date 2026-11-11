@@ -124,12 +124,15 @@ async function renderDetail(item,seller) {
       if (currentUser?.id === item.seller_id) {
         chatButton.disabled = true;
         chatButton.textContent = 'Your Listing';
+        chatButton.classList.add('is-own-listing');
+        chatButton.title = 'This is your listing. Other users can contact you about it.';
       }
     } catch(error) {
       actionMessage.textContent = error.message || 'Unable to check your account.';
     }
     chatButton.addEventListener('click',async () => {
       chatButton.disabled = true;
+      chatButton.setAttribute('aria-busy','true');
       actionMessage.textContent = '';
       try {
         const currentUser = await getCurrentUser();
@@ -143,6 +146,8 @@ async function renderDetail(item,seller) {
       } catch(error) {
         actionMessage.textContent = error.message || 'Unable to open the conversation.';
         chatButton.disabled = false;
+      } finally {
+        chatButton.removeAttribute('aria-busy');
       }
     });
   }
