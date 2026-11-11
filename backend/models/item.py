@@ -18,6 +18,7 @@ class Item(SQLModel, table=True):
     title: str = Field(max_length=120)
     category: str = Field(max_length=30, index=True)
     price: int = Field(index=True)
+    quantity: int = Field(default=1, ge=1)
     condition: str = Field(max_length=10)
     description: str = Field(max_length=2000)
     location: str = Field(max_length=160)
