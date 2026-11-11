@@ -29,14 +29,15 @@
           <a class="text-link" href="browse.html">Browse Products</a>
         </div>
         <form id="page-form" novalidate hidden>
+          <p class="required-note"><span class="required-mark" aria-hidden="true">*</span> Required fields</p>
           <div class="form-field">
-            <label for="title">Product Title</label>
+            <label for="title">Product Title <span class="required-mark" aria-hidden="true">*</span></label>
             <input id="title" name="title" type="text" required maxlength="120" placeholder="Enter product title">
             <small id="title-error" class="field-error" role="alert"></small>
           </div>
           <div class="form-row">
             <div class="form-field">
-              <label for="category">Category</label>
+              <label for="category">Category <span class="required-mark" aria-hidden="true">*</span></label>
               <select id="category" name="category" required>
                 <option value="">Select category</option>
                 <option value="textbooks">Textbooks</option>
@@ -48,13 +49,19 @@
               <small id="category-error" class="field-error" role="alert"></small>
             </div>
             <div class="form-field">
-              <label for="price">Price (VND)</label>
-              <input id="price" name="price" type="number" required min="0" step="1" inputmode="numeric" placeholder="45000">
-              <small id="price-error" class="field-error" role="alert"></small>
+              <label for="quantity">Quantity <span class="required-mark" aria-hidden="true">*</span></label>
+              <input id="quantity" name="quantity" type="number" required min="1" step="1" value="1" inputmode="numeric">
+              <small id="quantity-error" class="field-error" role="alert"></small>
             </div>
           </div>
           <div class="form-field">
-            <label for="condition">Condition</label>
+            <label for="price">Total Price (VND) <span class="required-mark" aria-hidden="true">*</span></label>
+            <input id="price" name="price" type="number" required min="0" step="1" inputmode="numeric" placeholder="45000">
+            <small class="field-hint">Total price for all items in this listing, not per item.</small>
+            <small id="price-error" class="field-error" role="alert"></small>
+          </div>
+          <div class="form-field">
+            <label for="condition">Condition <span class="required-mark" aria-hidden="true">*</span></label>
             <select id="condition" name="condition" required>
               <option value="">Select condition</option>
               <option value="new">Like New</option>
@@ -64,24 +71,24 @@
             <small id="condition-error" class="field-error" role="alert"></small>
           </div>
           <div class="form-field">
-            <label for="description">Description</label>
+            <label for="description">Description <span class="required-mark" aria-hidden="true">*</span></label>
             <textarea id="description" name="description" rows="4" required maxlength="2000" placeholder="Describe the condition, usage and any helpful details."></textarea>
             <small id="description-error" class="field-error" role="alert"></small>
           </div>
           <div class="form-field">
-            <label for="images">Product Images</label>
+            <label for="images">Product Images (Optional)</label>
             <div class="upload-zone">
               <span class="upload-icon" aria-hidden="true">↑</span>
               <p>Share a closer look at your item</p>
               <label class="button button-outline image-picker" for="images">Choose Images</label>
               <input class="sr-only" id="images" name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-describedby="images-hint images-error">
-              <p id="images-hint">1–5 images · JPEG, PNG or WebP · Up to 5 MB each</p>
+              <p id="images-hint">0–5 images · JPEG, PNG or WebP · Up to 5 MB each</p>
             </div>
             <small id="images-error" class="field-error" role="alert"></small>
             <div id="image-previews" class="image-previews" aria-label="Selected product images"></div>
           </div>
           <div class="form-field">
-            <label for="location">Meeting Location</label>
+            <label for="location">Meeting Location <span class="required-mark" aria-hidden="true">*</span></label>
             <input id="location" name="location" type="text" required maxlength="160" placeholder="e.g. NEU - Zone A">
             <small id="location-error" class="field-error" role="alert"></small>
           </div>

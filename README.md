@@ -132,6 +132,7 @@ From the repository root, with backend dependencies installed:
 
 ```bash
 node frontend/scripts/verify-fullstack.mjs
+node frontend/scripts/verify-pricing.mjs
 node frontend/scripts/verify-catalog-pagination.mjs
 node frontend/scripts/verify-fe1-retry.mjs
 node frontend/scripts/verify-fe2-01.mjs

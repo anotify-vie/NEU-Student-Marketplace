@@ -45,7 +45,7 @@ const server = createServer(async (request,response) => {
     const target = path.resolve(root,`.${decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname)}`);
     if (!target.startsWith(root + path.sep)) { response.writeHead(403); return response.end(); }
     let body = await readFile(target);
-    if (target.endsWith('/js/api.js')) body = Buffer.from(body.toString().replace(/^export const API_MODE = .*;$/m,`export const API_MODE = '${realMode ? 'real' : 'mock'}';`).replace(/^export const API_BASE_URL = .*;$/m,`export const API_BASE_URL = '${base}/api';`));
+    if (target.replaceAll('\\','/').endsWith('/js/api.js')) body = Buffer.from(body.toString().replace(/^export const API_MODE = .*;$/m,`export const API_MODE = '${realMode ? 'real' : 'mock'}';`).replace(/^export const API_BASE_URL = .*;$/m,`export const API_BASE_URL = '${base}/api';`));
     response.writeHead(200,{'Content-Type':mime[path.extname(target)] || 'application/octet-stream'});
     response.end(body);
   } catch { response.writeHead(404); response.end('Not found'); }
@@ -165,8 +165,44 @@ try {
   await waitFor(`!document.getElementById('page-error').hidden`,'Missing listing error missing');
   await navigate('/pages/create-listing.html');
   await waitFor(`!document.getElementById('page-form').hidden`,'Create form missing');
-  await fill(values); await submit();
-  assert(await evaluate(`document.getElementById('images-error').textContent`),'Missing images accepted');
+  // v1.1 form: required markers, optional images, quantity default and total-price wording
+  assert(await evaluate(`document.getElementById('quantity').value === '1' && document.getElementById('quantity').min === '1' && !!document.querySelector('.required-note') && document.querySelectorAll('.required-mark').length >= 7 && document.querySelector('label[for="images"]').textContent.includes('Optional') && document.querySelector('label[for="price"]').textContent.includes('Total Price')`),'Required/optional/quantity/total-price labels missing');
+  for (const quantity of ['0','-2','1.5']) {
+    await fill({...values,quantity}); await submit();
+    assert(await evaluate(`document.getElementById('quantity-error').textContent`),'Invalid quantity accepted: ' + quantity);
+  }
+  // Create without images, check the placeholder, add an image later, keep it on other edits, then remove it
+  const detailId = path => Number(new URL(path,base).searchParams.get('id'));
+  const linkPath = `new URL(document.getElementById('view-listing').href).pathname + new URL(document.getElementById('view-listing').href).search`;
+  const placeholder = `document.getElementById('main-product-image').src.endsWith('placeholder.svg') && document.getElementById('main-product-image').naturalWidth > 0`;
+  await fill({...values,title:'No image listing',quantity:'1'}); await submit();
+  await waitFor(`!document.getElementById('listing-success').hidden`,'Create without images failed');
+  const noImagePath = await evaluate(linkPath);
+  const noImageId = detailId(noImagePath);
+  await navigate(noImagePath);
+  await waitFor(`document.getElementById('product-title')?.textContent === 'No image listing' && ${placeholder}`,'No-image placeholder missing');
+  await navigate(`/pages/edit-listing.html?id=${noImageId}`);
+  await waitFor(`document.getElementById('title').value === 'No image listing' && document.querySelectorAll('#image-previews img').length === 0`,'No-image edit prefill failed');
+  await selectImages();
+  await waitFor(`document.querySelectorAll('#image-previews img').length === 1`,'Later image preview missing');
+  await submit(); await waitFor(`!document.getElementById('listing-success').hidden`,'Adding an image later failed');
+  await navigate(noImagePath);
+  await waitFor(`document.getElementById('main-product-image').naturalWidth > 0 && !document.getElementById('main-product-image').src.endsWith('placeholder.svg')`,'Image added later is missing');
+  await navigate(`/pages/edit-listing.html?id=${noImageId}`);
+  await waitFor(`document.querySelectorAll('#image-previews img').length === 1`,'Existing image not loaded in Edit');
+  await fill({title:'No image listing edited'}); await submit();
+  await waitFor(`!document.getElementById('listing-success').hidden`,'Editing another field failed');
+  await navigate(noImagePath);
+  await waitFor(`document.getElementById('product-title').textContent === 'No image listing edited' && !document.getElementById('main-product-image').src.endsWith('placeholder.svg')`,'Existing image lost when editing another field');
+  await navigate(`/pages/edit-listing.html?id=${noImageId}`);
+  await waitFor(`document.querySelectorAll('#image-previews img').length === 1`,'Image missing before removal');
+  await evaluate(`document.querySelector('.remove-image').click()`); await submit();
+  await waitFor(`!document.getElementById('listing-success').hidden`,'Removing the image failed');
+  await navigate(noImagePath);
+  await waitFor(placeholder,'Placeholder missing after removing the image');
+  await navigate('/pages/create-listing.html');
+  await waitFor(`!document.getElementById('page-form').hidden`,'Create form missing');
+  await fill({...values,quantity:'3'});
   for (const args of [[6],[1,'image/gif'],[1,'image/png',5*1024*1024+1],[1,'image/png',0,false]]) {
     await selectImages(...args);
     await waitFor(`document.getElementById('images-error').textContent.length > 0 && !document.querySelector('#image-previews img')`,'Invalid images accepted');
@@ -187,6 +223,9 @@ try {
   const createdId = Number(new URL(createdPath,base).searchParams.get('id'));
   await navigate(createdPath);
   await waitFor(`document.getElementById('product-title')?.textContent === '${values.title}' && document.getElementById('main-product-image').naturalWidth > 0`,'Created detail/image missing');
+  const pickPrice = quantity => evaluate(`(() => { const input=document.getElementById('selected-quantity'); input.value='${quantity}'; input.dispatchEvent(new Event('input',{bubbles:true})); return document.getElementById('selected-price').textContent; })()`);
+  assert(await evaluate(`document.getElementById('product-quantity').textContent === '3' && document.getElementById('selected-quantity').max === '3'`),'Detail quantity missing');
+  for (const [quantity,expected] of [[1,'15,000 VND'],[2,'30,000 VND'],[3,'45,000 VND'],[9,'45,000 VND'],[0,'15,000 VND']]) assert((await pickPrice(quantity)).includes(expected),`Selected price for quantity ${quantity} should be ${expected}`);
   await navigate(createdPath);
   await waitFor(`document.getElementById('main-product-image').naturalWidth > 0`,'Uploaded image did not survive reload');
   await navigate('/pages/browse.html');
@@ -200,6 +239,11 @@ try {
   await submit(); await waitFor(`!document.getElementById('listing-success').hidden`,'Edit save failed');
   await navigate(createdPath);
   await waitFor(`document.getElementById('product-title').textContent === 'Updated campus textbook' && document.getElementById('product-price').textContent === '50,000 VND'`,'Edited data did not persist');
+  assert((await pickPrice(1)).includes('16,667 VND'),'Edited price should round half up');
+  // Sold listings: no availability text or selector
+  await navigate('/pages/product-detail.html?id=113');
+  await waitFor(`document.getElementById('product-title')?.textContent === 'Introductory Economics Workbook'`,'Sold listing missing');
+  assert(await evaluate(`document.querySelector('.quantity-picker').hidden && !document.querySelector('.quantity-info').textContent.includes('available') && document.querySelector('.quantity-info').textContent.includes('Sold') && document.getElementById('chat-button').disabled`),'Sold listing still shows quantity selection or allows chat');
   await signedIn(1);
   assert(await evaluate(`(async()=>{try {await(await import('/js/api.js')).updateItem(${createdId},${JSON.stringify({...values,price:45000,image_urls:['assets/textbook.svg']})}); return false;}catch(e){return e.message.includes('own listings');}})()`),'Mock API allowed non-owner edit');
 
@@ -235,7 +279,13 @@ try {
   await command('Network.clearBrowserCookies'); await submit();
   await waitFor(`location.pathname === '/pages/login.html' && new URLSearchParams(location.search).get('returnTo') === '/pages/create-listing.html'`,'Expired session did not return to Login');
   const posted = JSON.parse(requests.find(req => req.route === '/api/items' && req.method === 'POST').body);
-  assert(Number.isInteger(posted.price) && !('seller_id' in posted) && posted.image_urls.length === 1,'Listing payload deviates from contract');
+  assert(Number.isInteger(posted.price) && Number.isInteger(posted.quantity) && !('seller_id' in posted) && posted.image_urls.length === 1,'Listing payload deviates from contract');
+  // Adapter defaults: create falls back to quantity 1 and no images; update never invents quantity or images
+  await evaluate(`(async()=>{const api=await import('/js/api.js'); const base={title:'t',category:'other',price:1000,condition:'good',description:'d',location:'l'}; try { await api.createItem(base); } catch {} try { await api.updateItem(200,base); } catch {} })()`);
+  const lastBody = (method,route) => JSON.parse(requests.filter(req => req.method === method && req.route === route).at(-1).body);
+  const created = lastBody('POST','/api/items'), patched = lastBody('PATCH','/api/items/200');
+  assert(created.quantity === 1 && Array.isArray(created.image_urls) && created.image_urls.length === 0,'createItem default quantity/images wrong');
+  assert(!('quantity' in patched) && !('image_urls' in patched),'updateItem added defaults that could change existing data');
   assert(requests.some(req => req.route === '/api/uploads' && req.headers['content-type'].includes('multipart/form-data') && req.body.includes('name="file"')),'Upload payload deviates from contract');
   assert(requests.some(req => req.route === '/api/items' && req.headers.cookie?.includes('neu_test_session=1')),'Authenticated cookie missing');
   assert(!requests.filter(req => req.route === '/api/auth/register').some(req => 'confirm_password' in JSON.parse(req.body)),'Confirmation sent to backend');

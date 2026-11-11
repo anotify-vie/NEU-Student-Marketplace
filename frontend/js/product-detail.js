@@ -1,4 +1,5 @@
 import { getItem, getUser, getCurrentUser, openConversation } from './api.js';
+import { selectedPrice } from './pricing.js';
 import { renderShell, formatPrice, resolveAssetUrl, isFavorite, toggleFavorite } from './components.js';
 
 renderShell();
@@ -65,11 +66,35 @@ function updateFavorite(item) {
   favoriteButton.textContent = active ? '♥ Remove from Favorites' : '♡ Add to Favorites';
 }
 
+function setupQuantity(item) {
+  const total = item.quantity || 1;
+  const input = document.getElementById('selected-quantity');
+  if (item.status === 'sold') {
+    document.querySelector('.quantity-info').textContent = 'Total listing price · Sold';
+    document.querySelector('.quantity-picker').hidden = true;
+    return;
+  }
+  document.getElementById('product-quantity').textContent = total;
+  input.max = total;
+  input.value = 1;
+  function update() {
+    let count = Math.floor(Number(input.value));
+    if (!count || count < 1) count = 1;
+    if (count > total) count = total;
+    const price = selectedPrice(item.price,total,count);
+    document.getElementById('selected-price').textContent = `Estimated price for ${count}: ${formatPrice(price)}`;
+  }
+  input.addEventListener('input',update);
+  input.addEventListener('change',() => { input.value = Math.min(total,Math.max(1,Math.floor(Number(input.value)) || 1)); update(); });
+  update();
+}
+
 async function renderDetail(item,seller) {
   document.title = `${item.title} | NEU Student Marketplace`;
   document.getElementById('breadcrumb-item').textContent = item.title;
   document.getElementById('product-title').textContent = item.title;
   document.getElementById('product-price').textContent = formatPrice(item.price);
+  setupQuantity(item);
   document.getElementById('product-description').textContent = item.description || 'No description provided.';
   document.getElementById('product-location').textContent = item.location || 'Ask the seller';
   const category = document.getElementById('product-category');
