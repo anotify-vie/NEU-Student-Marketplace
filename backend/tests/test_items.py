@@ -1,6 +1,7 @@
 import io
 
 import config
+import pytest
 from PIL import Image
 
 
@@ -61,6 +62,7 @@ def test_create_item_valid(client, registered_user):
     assert body["seller_id"] == registered_user["id"]
     assert body["status"] == "available"
     assert body["price"] == 45000
+    assert body["quantity"] == 1
     assert body["image_urls"] == [url]
     assert "password_hash" not in body
 
@@ -85,10 +87,38 @@ def test_create_item_missing_fields_rejected(client, registered_user):
     assert response.status_code == 422
 
 
-def test_create_item_requires_at_least_one_image(client, registered_user):
+def test_create_item_allows_no_images(client, registered_user):
     login(client)
     response = create_item(client, "/uploads/x.jpg", image_urls=[])
+    assert response.status_code == 201
+    assert response.json()["image_urls"] == []
+
+
+@pytest.mark.parametrize("quantity", [0, -1, True, "2"])
+def test_create_item_rejects_invalid_quantity(client, registered_user, quantity):
+    login(client)
+    response = create_item(client, "/uploads/x.jpg", quantity=quantity, image_urls=[])
     assert response.status_code == 422
+
+
+def test_update_item_preserves_images_when_updating_quantity(client, registered_user):
+    login(client)
+    url = uploaded_url(client)
+    created = create_item(client, url).json()
+    response = client.patch(f"/api/items/{created['id']}", json={"quantity": 3})
+    assert response.status_code == 200
+    assert response.json()["quantity"] == 3
+    assert response.json()["price"] == created["price"]
+    assert response.json()["image_urls"] == [url]
+
+
+def test_update_item_can_remove_all_images(client, registered_user):
+    login(client)
+    url = uploaded_url(client)
+    created = create_item(client, url).json()
+    response = client.patch(f"/api/items/{created['id']}", json={"image_urls": []})
+    assert response.status_code == 200
+    assert response.json()["image_urls"] == []
 
 
 def test_create_item_rejects_more_than_five_images(client, registered_user):

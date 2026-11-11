@@ -13,10 +13,11 @@ class ItemCreate(BaseModel):
     title: str = Field(min_length=1, max_length=120)
     category: Category
     price: StrictInt = Field(ge=0, le=999_999_999)
+    quantity: StrictInt = Field(default=1, ge=1)
     condition: Condition
     description: str = Field(min_length=1, max_length=2000)
     location: str = Field(min_length=1, max_length=160)
-    image_urls: list[str] = Field(min_length=1, max_length=5)
+    image_urls: list[str] = Field(default_factory=list, min_length=0, max_length=5)
 
     @field_validator("title", "description", "location")
     @classmethod
@@ -38,10 +39,11 @@ class ItemUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=120)
     category: Category | None = None
     price: StrictInt | None = Field(default=None, ge=0, le=999_999_999)
+    quantity: StrictInt | None = Field(default=None, ge=1)
     condition: Condition | None = None
     description: str | None = Field(default=None, min_length=1, max_length=2000)
     location: str | None = Field(default=None, min_length=1, max_length=160)
-    image_urls: list[str] | None = Field(default=None, min_length=1, max_length=5)
+    image_urls: list[str] | None = Field(default=None, min_length=0, max_length=5)
 
     @field_validator("title", "description", "location")
     @classmethod
@@ -80,6 +82,7 @@ class ItemResponse(BaseModel):
     title: str
     category: str
     price: int
+    quantity: int
     condition: str
     description: str
     location: str
@@ -103,6 +106,7 @@ def to_item_response(item) -> ItemResponse:
         title=item.title,
         category=item.category,
         price=item.price,
+        quantity=item.quantity,
         condition=item.condition,
         description=item.description,
         location=item.location,
